@@ -1,0 +1,16 @@
+#
+# This program adds the prime factors of 10,551,403
+# The factors are 1, 19, 555_337, and 10_551_403
+
+
+	r3 = 1
+	while r3 <= 10,551,403:
+		r5 = 1
+
+		while r5 <= 10,551,403
+3:			r4 = r3 * r5
+4:			if r4 == 10,551,403:
+7:				r0 = r0 + r3
+8:			r5 += 1
+12:		r3 += 1
+
