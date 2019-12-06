@@ -1,7 +1,5 @@
-import math
-
 def fuel_for_mass(mass):
-    this_fuel = math.floor(mass / 3) - 2
+    this_fuel = mass // 3 - 2
     if this_fuel <= 0:
         return 0
     else:
@@ -11,7 +9,7 @@ if __name__ == "__main__":
     total_fuel = 0
     with open("1.txt", "r") as infile:
         for mass in infile:
-            total_fuel += math.floor(int(mass) / 3) - 2
+            total_fuel += int(mass) // 3 - 2
 
     print(f"Total fuel required (part 1): {total_fuel}")
 
