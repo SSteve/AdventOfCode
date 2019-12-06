@@ -2,7 +2,7 @@
 
 ## Solutions to [Advent of Code 2015](https://adventofcode.com/2015/) puzzles
 
-Jump to
+### Jump to
 - [2016](https://github.com/SSteve/AdventOfCode/tree/master/Advent2016)
 - [2017](https://github.com/SSteve/AdventOfCode/tree/master/Advent2017)
 - [2018](https://github.com/SSteve/AdventOfCode/tree/master/Advent2018)
@@ -10,7 +10,7 @@ Jump to
 
 I did the 2015 puzzles after I discovered Advent of Code in January 2019.
 
-## The Puzzles
+### The Puzzles
 - Dec 1. - [instructions](http://adventofcode.com/2015/day/1) + [solution](./1.py)
 - Dec 2. - [instructions](http://adventofcode.com/2015/day/2) + [solution](./2.py)
 - Dec 3. - [instructions](http://adventofcode.com/2015/day/3) + [solution](./3.py)
