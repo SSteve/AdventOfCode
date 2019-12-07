@@ -1,8 +1,12 @@
+from queue import SimpleQueue
+
 class IntCode():
-    def __init__(self, initial_memory):
+    def __init__(self, initial_memory, input_queue = []):
         self.memory = [int(x) for x in initial_memory.split(",")]
         self.instruction_pointer = 0
         self.halted = False
+        self.input_queue = input_queue
+        self.output_values = []
         
     def run(self):
         while not self.halted:
@@ -74,16 +78,20 @@ class IntCode():
         return product
         
     def input(self):
-        instruction = self.read_next(1)
+        # Bypass the instruction
+        _ = self.read_next(1)
         address = self.read_next(1)
-        value = int(input("Enter an integer: "))
+        if len(self.input_queue) == 0:
+            value = int(input("Enter an integer: "))
+        else:
+            value = self.input_queue.pop(0)
         self.memory[address] = value
         
     def output(self):
         instruction = self.read_next(1)
         parameter_modes = instruction // 100
         value = self.read_next(parameter_modes & 1 == 1)
-        print(f"output: {value}")   
+        self.output_values.append(value) 
         
     def jump_if_true(self):
         instruction = self.read_next(1)
@@ -177,7 +185,7 @@ if __name__ == "__main__":
         
     computer.set_memory(1, 12)
     computer.set_memory(2, 2)
-    print(computer.disassemble())
+    # print(computer.disassemble())
     computer.run()
     
     assert computer.get_memory(0) == 3765464, "Day 2 assertion (addition and multiplication in position mode) failed."
@@ -188,24 +196,82 @@ if __name__ == "__main__":
     assert computer.get_memory(4) == 99, "Day 5 assertion (immediate mode) failed."
 
     # Day 5, Part 2
-    print(f"Should print 1 if input == 8, 0 otherwise")
-    computer = IntCode("3,9,8,9,10,9,4,9,99,-1,8")
+    # Equal (position mode) test
+    # Output is 1 if input == 8, 0 otherwise
+    computer = IntCode("3,9,8,9,10,9,4,9,99,-1,8", [9])
     computer.run()
-    print("Should print 1 if input < 8, 0 otherwise")
-    computer = IntCode("3,9,7,9,10,9,4,9,99,-1,8")
+    assert computer.output_values[0] == 0, "Equal (position mode) test 1 failed"
+    computer = IntCode("3,9,8,9,10,9,4,9,99,-1,8", [8])
     computer.run()
-    print("Should print 1 if input == 8, 0 otherwise")
-    computer = IntCode("3,3,1108,-1,8,3,4,3,99")
+    assert computer.output_values[0] == 1, "Equal (position mode) test 2 failed"
+
+    # Less-than (position mode) test
+    # Output is 1 if input < 8, 0 otherwise
+    computer = IntCode("3,9,7,9,10,9,4,9,99,-1,8", [-5])
     computer.run()
-    print("Should print 1 if input < 8, 0 otherwise")
-    computer = IntCode("3,3,1107,-1,8,3,4,3,99")
+    assert computer.output_values[0] == 1, "Less-than (position mode) test 1 failed"
+    computer = IntCode("3,9,7,9,10,9,4,9,99,-1,8", [8475849])
     computer.run()
-    print("Should output 0 if input is zero, 1 otherwise")
-    computer = IntCode("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9")
+    assert computer.output_values[0] == 0, "Less-than (position mode) test 2 failed"
+    computer = IntCode("3,9,7,9,10,9,4,9,99,-1,8", [8])
     computer.run()
-    print("Should output 0 if input is 2zero, 1 otherwise")
-    computer = IntCode("3,3,1105,-1,9,1101,0,0,12,4,12,99,1")
+    assert computer.output_values[0] == 0, "Less-than (position mode) test 3 failed"
+
+    # Equal (immediate mode) test
+    # Output is 1 if input == 8, 0 otherwise
+    computer = IntCode("3,3,1108,-1,8,3,4,3,99", [7])
     computer.run()
-    print("The program will then output 999 if the input value is below 8, output 1000 if the input value is equal to 8, or output 1001 if the input value is greater than 8.")
-    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99")
+    assert computer.output_values[0] == 0, "Equal (immediate mode) test 1 failed"
+    computer = IntCode("3,3,1108,-1,8,3,4,3,99", [8])
     computer.run()
+    assert computer.output_values[0] == 1, "Equal (immediate mode) test 2 failed"
+
+    # Less-than (immediate mode) test
+    # Output is 1 if input < 8, 0 otherwise
+    computer = IntCode("3,3,1107,-1,8,3,4,3,99", [-86])
+    computer.run()
+    assert computer.output_values[0] == 1, "Less-than (immediate mode) test 1 failed"
+    computer = IntCode("3,3,1107,-1,8,3,4,3,99", [8])
+    computer.run()
+    assert computer.output_values[0] == 0, "Less-than (immediate mode) test 2 failed"
+    computer = IntCode("3,3,1107,-1,8,3,4,3,99", [9])
+    computer.run()
+    assert computer.output_values[0] == 0, "Less-than (immediate mode) test 3 failed"
+
+    # Jump (position mode) test
+    # Output is 0 if input == 0, 1 otherwise
+    computer = IntCode("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", [0])
+    computer.run()
+    assert computer.output_values[0] == 0, "Jump (position mode) test 1 failed"
+    computer = IntCode("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", [-1])
+    computer.run()
+    assert computer.output_values[0] == 1, "Jump (position mode) test 2 failed"
+    computer = IntCode("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", [1])
+    computer.run()
+    assert computer.output_values[0] == 1, "Jump (position mode) test 3 failed"
+
+    # Jump (immediate mode) test
+    # Output is 0 if input == 0, 1 otherwise
+    computer = IntCode("3,3,1105,-1,9,1101,0,0,12,4,12,99,1", [0])
+    computer.run()
+    assert computer.output_values[0] == 0, "Jump (immediate mode) test 1 failed"
+    computer = IntCode("3,3,1105,-1,9,1101,0,0,12,4,12,99,1", [-1])
+    computer.run()
+    assert computer.output_values[0] == 1, "Jump (immediate mode) test 2 failed"
+    computer = IntCode("3,3,1105,-1,9,1101,0,0,12,4,12,99,1", [1])
+    computer.run()
+    assert computer.output_values[0] == 1, "Jump (immediate mode) test 3 failed"
+
+    # Larger jump test
+    # Output is 999 if input < 8, 1000 if input == 8, 1001 if input > 8
+    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [7])
+    computer.run()
+    assert computer.output_values[0] == 999, "Larger jump test 1 failed"
+    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [8])
+    computer.run()
+    assert computer.output_values[0] == 1000, "Larger jump test 2 failed"
+    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [9])
+    computer.run()
+    assert computer.output_values[0] == 1001, "Larger jump test 3 failed" 
+
+    print("All tests passed.")
