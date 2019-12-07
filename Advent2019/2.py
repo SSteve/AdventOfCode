@@ -4,29 +4,29 @@ if __name__ == "__main__":
     # Tests
     computer = IntCode("1,9,10,3,2,3,11,0,99,30,40,50")
     computer.run()
-    assert computer.read(0) == 3500, "Day 2 test 1 failed."
+    assert computer.get_memory(0) == 3500, "Day 2 test 1 failed."
     computer = IntCode("1,0,0,0,99")
     computer.run()
-    assert computer.read(0) == 2, "Day 2 test 2 failed."
+    assert computer.get_memory(0) == 2, "Day 2 test 2 failed."
     computer = IntCode("2,3,0,3,99")
     computer.run()
-    assert computer.read(3) == 6, "Day 2 test 3 failed."
+    assert computer.get_memory(3) == 6, "Day 2 test 3 failed."
     computer = IntCode("2,4,4,5,99,0")
     computer.run()
-    assert computer.read(5) == 9801, "Day 2 test 4 failed."
+    assert computer.get_memory(5) == 9801, "Day 2 test 4 failed."
     computer = IntCode("1,1,1,4,99,5,6,0,99")
     computer.run()
-    assert computer.read(0) == 30, "Day 2 test 5 failed."
+    assert computer.get_memory(0) == 30, "Day 2 test 5 failed."
 
     # Part 1
     with open("2.txt", "r") as infile:
         computer = IntCode(infile.readline())
         
-    computer.store(1, 12)
-    computer.store(2, 2)
+    computer.set_memory(1, 12)
+    computer.set_memory(2, 2)
     computer.run()
     
-    print(f"Part one: register 0 == {computer.read(0)}")
+    print(f"Part one: register 0 == {computer.get_memory(0)}")
 
     # Part 2
     # I disassembled the program to find that this is the calculation:
@@ -49,9 +49,9 @@ if __name__ == "__main__":
         
     noun = 76
     verb = 10
-    computer.store(1, noun)
-    computer.store(2, verb)
+    computer.set_memory(1, noun)
+    computer.set_memory(2, verb)
     computer.run()
     
-    print(f"Part two: register 0 == {computer.read(0)}")
+    print(f"Part two: register 0 == {computer.get_memory(0)}")
     print(f"100 * noun + verb = {100 * noun + verb}")

@@ -11,15 +11,27 @@ class IntCode():
                 self.add()
             elif opcode == 2:
                 self.multiply()
+            elif opcode == 3:
+                self.input()
+            elif opcode == 4:
+                self.output()
+            elif opcode == 5:
+                self.jump_if_true()
+            elif opcode == 6:
+                self.jump_if_false()
+            elif opcode == 7:
+                self.less_than()
+            elif opcode == 8:
+                self.equals()
             elif opcode == 99:
                 self.halt()
             else:
                 raise ValueError(f"Unknown opcode: {opcode} at position {self.instruction_pointer}")
         
-    def store(self, address, value):
+    def set_memory(self, address, value):
         self.memory[address] = value
         
-    def read(self, address):
+    def get_memory(self, address):
         return self.memory[address]
         
     def core_dump(self):
@@ -61,6 +73,60 @@ class IntCode():
         self.memory[destination] = product
         return product
         
+    def input(self):
+        instruction = self.read_next(1)
+        address = self.read_next(1)
+        value = int(input("Enter an integer: "))
+        self.memory[address] = value
+        
+    def output(self):
+        instruction = self.read_next(1)
+        parameter_modes = instruction // 100
+        value = self.read_next(parameter_modes & 1 == 1)
+        print(f"output: {value}")   
+        
+    def jump_if_true(self):
+        instruction = self.read_next(1)
+        parameter_modes = instruction // 100
+        value = self.read_next(parameter_modes & 1 == 1)
+        parameter_modes //= 10
+        address = self.read_next(parameter_modes & 1 == 1)
+        if value != 0:
+            self.instruction_pointer = address
+
+    def jump_if_false(self):
+        instruction = self.read_next(1)
+        parameter_modes = instruction // 100
+        value = self.read_next(parameter_modes & 1 == 1)
+        parameter_modes //= 10
+        address = self.read_next(parameter_modes & 1 == 1)
+        if value == 0:
+            self.instruction_pointer = address
+            
+    def less_than(self):
+        instruction = self.read_next(1)
+        parameter_modes = instruction // 100
+        param1 = self.read_next(parameter_modes & 1 == 1)
+        parameter_modes //= 10
+        param2 = self.read_next(parameter_modes & 1 == 1)
+        destination = self.read_next(1)
+        if param1 < param2:
+            self.memory[destination] = 1
+        else:
+            self.memory[destination] = 0
+        
+    def equals(self):
+        instruction = self.read_next(1)
+        parameter_modes = instruction // 100
+        param1 = self.read_next(parameter_modes & 1 == 1)
+        parameter_modes //= 10
+        param2 = self.read_next(parameter_modes & 1 == 1)
+        destination = self.read_next(1)
+        if param1 == param2:
+            self.memory[destination] = 1
+        else:
+            self.memory[destination] = 0
+    
     def disassemble(self):
         instruction_strings = []
         starting_instruction_pointer = self.instruction_pointer
@@ -109,9 +175,37 @@ if __name__ == "__main__":
     with open("2.txt", "r") as infile:
         computer = IntCode(infile.readline())
         
-    computer.store(1, 12)
-    computer.store(2, 2)
+    computer.set_memory(1, 12)
+    computer.set_memory(2, 2)
     print(computer.disassemble())
     computer.run()
     
-    assert computer.read(0) == 3765464, "Day 2 assertion (addition and multiplication in position mode) failed."
+    assert computer.get_memory(0) == 3765464, "Day 2 assertion (addition and multiplication in position mode) failed."
+    
+    # Day 5, Part 1
+    computer = IntCode("1002,4,3,4,33")
+    computer.run()
+    assert computer.get_memory(4) == 99, "Day 5 assertion (immediate mode) failed."
+
+    # Day 5, Part 2
+    print(f"Should print 1 if input == 8, 0 otherwise")
+    computer = IntCode("3,9,8,9,10,9,4,9,99,-1,8")
+    computer.run()
+    print("Should print 1 if input < 8, 0 otherwise")
+    computer = IntCode("3,9,7,9,10,9,4,9,99,-1,8")
+    computer.run()
+    print("Should print 1 if input == 8, 0 otherwise")
+    computer = IntCode("3,3,1108,-1,8,3,4,3,99")
+    computer.run()
+    print("Should print 1 if input < 8, 0 otherwise")
+    computer = IntCode("3,3,1107,-1,8,3,4,3,99")
+    computer.run()
+    print("Should output 0 if input is zero, 1 otherwise")
+    computer = IntCode("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9")
+    computer.run()
+    print("Should output 0 if input is 2zero, 1 otherwise")
+    computer = IntCode("3,3,1105,-1,9,1101,0,0,12,4,12,99,1")
+    computer.run()
+    print("The program will then output 999 if the input value is below 8, output 1000 if the input value is equal to 8, or output 1001 if the input value is greater than 8.")
+    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99")
+    computer.run()
