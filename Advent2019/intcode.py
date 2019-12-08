@@ -1,15 +1,22 @@
 from queue import SimpleQueue
 
 class IntCode():
-    def __init__(self, initial_memory, input_queue = []):
+    def __init__(self, initial_memory, input_queue = [], interactive = True):
         self.memory = [int(x) for x in initial_memory.split(",")]
         self.instruction_pointer = 0
         self.halted = False
+        self.waiting_for_input = False
         self.input_queue = input_queue
         self.output_values = []
+        # In interactive mode, input is taken from the terminal. When interactive mode
+        # is false, the computer stops and can be restarted after input is available.
+        # Defaults to true so that previous problems don't break.
+        self.interactive_mode = interactive
         
     def run(self):
-        while not self.halted:
+        # Set waiting_for_input to false in case we are restarting after receiving new input
+        self.waiting_for_input = False
+        while not self.halted and not self.waiting_for_input:
             opcode = self.memory[self.instruction_pointer] % 100
             if opcode == 1:
                 self.add()
@@ -40,8 +47,17 @@ class IntCode():
         
     def core_dump(self):
         return self.memory
+
+    def accept_input(self, input_value):
+        self.input_queue.append(input_value)
         
     def read_next(self, parameter_mode = 0):
+        """
+        Read the next value from memory and advance the instruction pointer.
+
+        Keyword arguments:
+        parameter_mode -- 1 indicates immediate mode, 0 indicates position (i.e. indirect) mode
+        """
         if parameter_mode == 1:
             # immediate mode
             result = self.memory[self.instruction_pointer]
@@ -78,11 +94,16 @@ class IntCode():
         return product
         
     def input(self):
-        # Bypass the instruction
-        _ = self.read_next(1)
+        if len(self.input_queue) == 0 and not self.interactive_mode:
+            # If there's not input and we aren't in interactive mode, set the waiting flag and return
+            # before altering the instruction pointer
+            self.waiting_for_input = True
+            return
+        # Skip over the instruction because addressing will always be position mode
+        self.instruction_pointer += 1
         address = self.read_next(1)
         if len(self.input_queue) == 0:
-            value = int(input("Enter an integer: "))
+               value = int(input("Enter an integer: "))
         else:
             value = self.input_queue.pop(0)
         self.memory[address] = value
