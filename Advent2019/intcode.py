@@ -80,7 +80,7 @@ class IntCode():
         if addressing_mode == AddressingMode.IMMEDIATE:
             result = self.get_memory(self.instruction_pointer)
         elif addressing_mode == AddressingMode.RELATIVE:
-            result = self.get_memory(self.get_memory(self.instruction_pointer)) + self.relative_base
+            result = self.get_memory(self.get_memory(self.instruction_pointer) + self.relative_base)
         else:
             # position mode
             result = self.get_memory(self.get_memory(self.instruction_pointer))
