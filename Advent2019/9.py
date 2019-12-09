@@ -8,4 +8,11 @@ if __name__ == "__main__":
         int_code_program = infile.readline().strip()
     computer = IntCode(int_code_program, [1], interactive=False)
     computer.run()
-    print(computer.output_values)
+    if len(computer.output_values) == 1:
+        print(f"Part one: BOOST keycode = {computer.output_values}")
+    else:
+        print(f"Errors found in part one: {computer.output_values}")
+
+    computer = IntCode(int_code_program, [2], interactive=False)
+    computer.run()
+    print(f"Part two: coordinates of distress signal: {computer.output_values}")
