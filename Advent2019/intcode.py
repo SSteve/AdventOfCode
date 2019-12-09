@@ -86,6 +86,12 @@ class IntCode():
             result = self.get_memory(self.get_memory(self.instruction_pointer))
         self.instruction_pointer += 1
         return result
+
+    def get_destination(self, addressing_mode):
+        destination = self.read_next(AddressingMode.IMMEDIATE)
+        if addressing_mode == AddressingMode.RELATIVE:
+            destination += self.relative_base
+        return destination
             
     def halt(self):
         self.instruction_pointer += 1
@@ -97,7 +103,8 @@ class IntCode():
         addend1 = self.read_next(addressing_modes % 10)
         addressing_modes //= 10
         addend2 = self.read_next(addressing_modes % 10)
-        destination = self.read_next(AddressingMode.IMMEDIATE)
+        addressing_modes //= 10
+        destination = self.get_destination(addressing_modes % 10)
         summand = addend1 + addend2
         self.set_memory(destination, summand)
         return summand
@@ -108,7 +115,8 @@ class IntCode():
         factor1 = self.read_next(addressing_modes % 10)
         addressing_modes //= 10
         factor2 = self.read_next(addressing_modes % 10)
-        destination = self.read_next(AddressingMode.IMMEDIATE)
+        addressing_modes //= 10
+        destination = self.get_destination(addressing_modes % 10)
         product = factor1 * factor2
         self.set_memory(destination, product)
         return product
@@ -119,23 +127,23 @@ class IntCode():
             # before altering the instruction pointer
             self.waiting_for_input = True
             return
-        # Skip over the instruction because addressing will always be position mode
-        self.instruction_pointer += 1
-        address = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
+        addressing_modes = instruction // 100
+        destination = self.get_destination(addressing_modes % 10)
         if len(self.input_queue) == 0:
                value = int(input("Enter an integer: "))
         else:
             value = self.input_queue.pop(0)
-        self.set_memory(address, value)
+        self.set_memory(destination, value)
         
     def output(self):
-        instruction = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         value = self.read_next(addressing_modes % 10)
         self.output_values.append(value) 
         
     def jump_if_true(self):
-        instruction = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         value = self.read_next(addressing_modes % 10)
         addressing_modes //= 10
@@ -144,7 +152,7 @@ class IntCode():
             self.instruction_pointer = address
 
     def jump_if_false(self):
-        instruction = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         value = self.read_next(addressing_modes % 10)
         addressing_modes //= 10
@@ -153,36 +161,39 @@ class IntCode():
             self.instruction_pointer = address
             
     def less_than(self):
-        instruction = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         param1 = self.read_next(addressing_modes % 10)
         addressing_modes //= 10
         param2 = self.read_next(addressing_modes % 10)
-        destination = self.read_next(1)
+        addressing_modes //= 10
+        destination = self.get_destination(addressing_modes % 10)
         if param1 < param2:
             self.set_memory(destination, 1)
         else:
             self.set_memory(destination, 0)
         
     def equals(self):
-        instruction = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         param1 = self.read_next(addressing_modes % 10)
         addressing_modes //= 10
         param2 = self.read_next(addressing_modes % 10)
-        destination = self.read_next(1)
+        addressing_modes //= 10
+        destination = self.get_destination(addressing_modes % 10)
         if param1 == param2:
             self.set_memory(destination, 1)
         else:
             self.set_memory(destination, 0)
 
     def set_relative_base(self):
-        instruction = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         offset = self.read_next(addressing_modes % 10)
         self.relative_base += offset
     
     def disassemble(self):
+        raise NotImplementedError("Disassemble needs to be updated")
         instruction_strings = []
         starting_instruction_pointer = self.instruction_pointer
         self.instruction_pointer = 0
@@ -207,18 +218,18 @@ class IntCode():
             return f"{value}"
             
     def disassemble_add(self):
-        instruction = self.read_next(1)
-        addend1 = self.read_next(1)
-        addend2 = self.read_next(1)
-        summand = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
+        addend1 = self.read_next(AddressingMode.IMMEDIATE)
+        addend2 = self.read_next(AddressingMode.IMMEDIATE)
+        summand = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         return f"{self.instruction_pointer - 4}: {summand} = {self.disassemble_value(addend1, addressing_modes % 10)} + {self.disassemble_value(addend2, addressing_modes // 10 % 10)}"
         
     def disassemble_multiply(self):
-        instruction = self.read_next(1)
-        factor1 = self.read_next(1)
-        factor2 = self.read_next(1)
-        product = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
+        factor1 = self.read_next(AddressingMode.IMMEDIATE)
+        factor2 = self.read_next(AddressingMode.IMMEDIATE)
+        product = self.read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(factor1, addressing_modes % 10)} * {self.disassemble_value(factor2, addressing_modes // 10 % 10)}"
         
