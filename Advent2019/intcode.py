@@ -1,4 +1,11 @@
 from queue import SimpleQueue
+from enum import IntEnum
+from collections import defaultdict
+
+class AddressingMode(IntEnum):
+    POSITION = 0
+    IMMEDIATE = 1
+    RELATIVE = 2
 
 class IntCode():
     def __init__(self, initial_memory, input_queue = [], interactive = True):
@@ -8,6 +15,9 @@ class IntCode():
         self.waiting_for_input = False
         self.input_queue = input_queue
         self.output_values = []
+        self.relative_base = 0
+        self.extended_memory = defaultdict(int)
+
         # In interactive mode, input is taken from the terminal. When interactive mode
         # is false, the computer stops and can be restarted after input is available.
         # Defaults to true so that previous problems don't break.
@@ -17,7 +27,7 @@ class IntCode():
         # Set waiting_for_input to false in case we are restarting after receiving new input
         self.waiting_for_input = False
         while not self.halted and not self.waiting_for_input:
-            opcode = self.memory[self.instruction_pointer] % 100
+            opcode = self.get_memory(self.instruction_pointer) % 100
             if opcode == 1:
                 self.add()
             elif opcode == 2:
@@ -34,36 +44,46 @@ class IntCode():
                 self.less_than()
             elif opcode == 8:
                 self.equals()
+            elif opcode == 9:
+                self.set_relative_base()
             elif opcode == 99:
                 self.halt()
             else:
                 raise ValueError(f"Unknown opcode: {opcode} at position {self.instruction_pointer}")
         
     def set_memory(self, address, value):
-        self.memory[address] = value
+        """Set data at given address to value"""
+        if address < len(self.memory):
+            self.memory[address] = value
+        else:
+            self.extended_memory[address] = value
         
     def get_memory(self, address):
-        return self.memory[address]
+        """Get data at given address"""
+        if address < len(self.memory):
+            return self.memory[address]
+        return self.extended_memory[address]
         
     def core_dump(self):
         return self.memory
 
     def accept_input(self, input_value):
         self.input_queue.append(input_value)
-        
-    def read_next(self, parameter_mode = 0):
+
+    def read_next(self, addressing_mode = AddressingMode.POSITION):
         """
         Read the next value from memory and advance the instruction pointer.
 
         Keyword arguments:
-        parameter_mode -- 1 indicates immediate mode, 0 indicates position (i.e. indirect) mode
+        addressing_mode -- of type AddressingMode
         """
-        if parameter_mode == 1:
-            # immediate mode
-            result = self.memory[self.instruction_pointer]
+        if addressing_mode == AddressingMode.IMMEDIATE:
+            result = self.get_memory(self.instruction_pointer)
+        elif addressing_mode == AddressingMode.RELATIVE:
+            result = self.get_memory(self.get_memory(self.instruction_pointer)) + self.relative_base
         else:
             # position mode
-            result = self.memory[self.memory[self.instruction_pointer]]
+            result = self.get_memory(self.get_memory(self.instruction_pointer))
         self.instruction_pointer += 1
         return result
             
@@ -72,25 +92,25 @@ class IntCode():
         self.halted = True
                 
     def add(self):
-        instruction = self.read_next(1)
-        parameter_modes = instruction // 100
-        addend1 = self.read_next(parameter_modes & 1 == 1)
-        parameter_modes //= 10
-        addend2 = self.read_next(parameter_modes & 1 == 1)
-        destination = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
+        addressing_modes = instruction // 100
+        addend1 = self.read_next(addressing_modes % 10)
+        addressing_modes //= 10
+        addend2 = self.read_next(addressing_modes % 10)
+        destination = self.read_next(AddressingMode.IMMEDIATE)
         summand = addend1 + addend2
-        self.memory[destination] = summand
+        self.set_memory(destination, summand)
         return summand
         
     def multiply(self):
-        instruction = self.read_next(1)
-        parameter_modes = instruction // 100
-        factor1 = self.read_next(parameter_modes & 1 == 1)
-        parameter_modes //= 10
-        factor2 = self.read_next(parameter_modes & 1 == 1)
-        destination = self.read_next(1)
+        instruction = self.read_next(AddressingMode.IMMEDIATE)
+        addressing_modes = instruction // 100
+        factor1 = self.read_next(addressing_modes % 10)
+        addressing_modes //= 10
+        factor2 = self.read_next(addressing_modes % 10)
+        destination = self.read_next(AddressingMode.IMMEDIATE)
         product = factor1 * factor2
-        self.memory[destination] = product
+        self.set_memory(destination, product)
         return product
         
     def input(self):
@@ -106,55 +126,61 @@ class IntCode():
                value = int(input("Enter an integer: "))
         else:
             value = self.input_queue.pop(0)
-        self.memory[address] = value
+        self.set_memory(address, value)
         
     def output(self):
         instruction = self.read_next(1)
-        parameter_modes = instruction // 100
-        value = self.read_next(parameter_modes & 1 == 1)
+        addressing_modes = instruction // 100
+        value = self.read_next(addressing_modes % 10)
         self.output_values.append(value) 
         
     def jump_if_true(self):
         instruction = self.read_next(1)
-        parameter_modes = instruction // 100
-        value = self.read_next(parameter_modes & 1 == 1)
-        parameter_modes //= 10
-        address = self.read_next(parameter_modes & 1 == 1)
+        addressing_modes = instruction // 100
+        value = self.read_next(addressing_modes % 10)
+        addressing_modes //= 10
+        address = self.read_next(addressing_modes % 10)
         if value != 0:
             self.instruction_pointer = address
 
     def jump_if_false(self):
         instruction = self.read_next(1)
-        parameter_modes = instruction // 100
-        value = self.read_next(parameter_modes & 1 == 1)
-        parameter_modes //= 10
-        address = self.read_next(parameter_modes & 1 == 1)
+        addressing_modes = instruction // 100
+        value = self.read_next(addressing_modes % 10)
+        addressing_modes //= 10
+        address = self.read_next(addressing_modes % 10)
         if value == 0:
             self.instruction_pointer = address
             
     def less_than(self):
         instruction = self.read_next(1)
-        parameter_modes = instruction // 100
-        param1 = self.read_next(parameter_modes & 1 == 1)
-        parameter_modes //= 10
-        param2 = self.read_next(parameter_modes & 1 == 1)
+        addressing_modes = instruction // 100
+        param1 = self.read_next(addressing_modes % 10)
+        addressing_modes //= 10
+        param2 = self.read_next(addressing_modes % 10)
         destination = self.read_next(1)
         if param1 < param2:
-            self.memory[destination] = 1
+            self.set_memory(destination, 1)
         else:
-            self.memory[destination] = 0
+            self.set_memory(destination, 0)
         
     def equals(self):
         instruction = self.read_next(1)
-        parameter_modes = instruction // 100
-        param1 = self.read_next(parameter_modes & 1 == 1)
-        parameter_modes //= 10
-        param2 = self.read_next(parameter_modes & 1 == 1)
+        addressing_modes = instruction // 100
+        param1 = self.read_next(addressing_modes % 10)
+        addressing_modes //= 10
+        param2 = self.read_next(addressing_modes % 10)
         destination = self.read_next(1)
         if param1 == param2:
-            self.memory[destination] = 1
+            self.set_memory(destination, 1)
         else:
-            self.memory[destination] = 0
+            self.set_memory(destination, 0)
+
+    def set_relative_base(self):
+        instruction = self.read_next(1)
+        addressing_modes = instruction // 100
+        offset = self.read_next(addressing_modes % 10)
+        self.relative_base += offset
     
     def disassemble(self):
         instruction_strings = []
@@ -162,7 +188,7 @@ class IntCode():
         self.instruction_pointer = 0
         opcode = 0
         while opcode != 99:
-            opcode = self.memory[self.instruction_pointer] % 100
+            opcode = self.get_memory(self.instruction_pointer) % 100
             if opcode == 1:
                 instruction_strings.append(self.disassemble_add())
             elif opcode == 2:
@@ -185,16 +211,16 @@ class IntCode():
         addend1 = self.read_next(1)
         addend2 = self.read_next(1)
         summand = self.read_next(1)
-        parameter_modes = instruction // 100
-        return f"{self.instruction_pointer - 4}: {summand} = {self.disassemble_value(addend1, parameter_modes % 10)} + {self.disassemble_value(addend2, parameter_modes // 10 % 10)}"
+        addressing_modes = instruction // 100
+        return f"{self.instruction_pointer - 4}: {summand} = {self.disassemble_value(addend1, addressing_modes % 10)} + {self.disassemble_value(addend2, addressing_modes // 10 % 10)}"
         
     def disassemble_multiply(self):
         instruction = self.read_next(1)
         factor1 = self.read_next(1)
         factor2 = self.read_next(1)
         product = self.read_next(1)
-        parameter_modes = instruction // 100
-        return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(factor1, parameter_modes % 10)} * {self.disassemble_value(factor2, parameter_modes // 10 % 10)}"
+        addressing_modes = instruction // 100
+        return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(factor1, addressing_modes % 10)} * {self.disassemble_value(factor2, addressing_modes // 10 % 10)}"
         
     def disassemble_halt(self):
         return f"{self.instruction_pointer}: halt"
@@ -294,5 +320,19 @@ if __name__ == "__main__":
     computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [9])
     computer.run()
     assert computer.output_values[0] == 1001, "Larger jump test 3 failed" 
+
+    # Relative base offset tests
+    computer = IntCode("109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99")
+    computer.run()
+    program = [int(x) for x in "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99".split(",")]
+    for i, value in enumerate(program):
+        assert value == computer.get_memory(i), "Relative base offset test 1 failed"
+    computer = IntCode("1102,34915192,34915192,7,4,7,99,0")
+    computer.run()
+    output_string = f"{computer.output_values[0]}"
+    assert len(output_string) == 16, "Relative base offset test 1 failed"
+    computer = IntCode("104,1125899906842624,99")
+    computer.run()
+    assert computer.output_values[0] == 1125899906842624
 
     print("All tests passed.")
