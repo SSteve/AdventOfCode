@@ -56,20 +56,17 @@ def day15(fileName, countCalories=False):
     ingredients = buildIngredients(fileName)
     highScore = 0
     for i in range(101):
-        print(i)
-        for j in range(101):
-            for k in range(101):
-                for l in range(101):
-                    if i + j + k + l != 100:
-                        continue
-                    recipe = {}
-                    tsps = [i, j, k, l]
-                    for ingredientNumber, ingredient in enumerate(ingredients):
-                        recipe[ingredient] = tsps[ingredientNumber]
-                    if countCalories and calories(recipe, ingredients) != 500:
-                        continue
-                    score = totalScore(recipe, ingredients)
-                    highScore = max(score, highScore)
+        for j in range(0, 101 - i):
+            for k in range(0, 101 - (i + j)):
+                l = 100 - (i + j + k)
+                recipe = {}
+                tsps = [i, j, k, l]
+                for ingredientNumber, ingredient in enumerate(ingredients):
+                    recipe[ingredient] = tsps[ingredientNumber]
+                if countCalories and calories(recipe, ingredients) != 500:
+                    continue
+                score = totalScore(recipe, ingredients)
+                highScore = max(score, highScore)
     print(highScore)
 
 
