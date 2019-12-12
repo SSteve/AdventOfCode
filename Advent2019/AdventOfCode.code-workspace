@@ -4,5 +4,8 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": 
+		{
+			"python.pythonPath": "/Users/steve/envs/advent/bin/python"
+		}
 }
