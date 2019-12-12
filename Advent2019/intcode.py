@@ -1,6 +1,9 @@
-from queue import SimpleQueue
-from enum import IntEnum
+# TODO: Reduce code duplication by calculating addressing modes in run()
+
 from collections import defaultdict
+from enum import IntEnum
+from queue import SimpleQueue
+from typing import Dict, List
 
 class AddressingMode(IntEnum):
     POSITION = 0
@@ -8,57 +11,59 @@ class AddressingMode(IntEnum):
     RELATIVE = 2
 
 class IntCode():
-    def __init__(self, initial_memory, input_queue = [], interactive = True):
-        self.memory = [int(x) for x in initial_memory.split(",")]
-        self.instruction_pointer = 0
-        self.halted = False
-        self.waiting_for_input = False
-        self.input_queue = input_queue
-        self.output_values = []
-        self.relative_base = 0
-        self.extended_memory = defaultdict(int)
+    def __init__(self, initial_memory: str, input_queue: List[int] = [], interactive: bool = True):
+        self.memory: List[int] = [int(x) for x in initial_memory.split(",")]
+        self.instruction_pointer:int = 0
+        self.halted: bool = False
+        self.waiting_for_input: bool = False
+        self.input_queue: List[int] = input_queue
+        self.output_values: List[int] = []
+        self.relative_base: int = 0
+        # This is kindof a kludge. It was added after the spec of needing more memory than the original
+        # program size. But it works.
+        self.extended_memory: Dict[int, int] = defaultdict(int)
 
         # In interactive mode, input is taken from the terminal. When interactive mode
         # is false, the computer stops and can be restarted after input is available.
         # Defaults to true so that previous problems don't break.
-        self.interactive_mode = interactive
+        self.interactive_mode: bool = interactive
         
     def run(self):
         # Set waiting_for_input to false in case we are restarting after receiving new input
         self.waiting_for_input = False
         while not self.halted and not self.waiting_for_input:
-            opcode = self.get_memory(self.instruction_pointer) % 100
+            opcode: int = self.get_memory(self.instruction_pointer) % 100
             if opcode == 1:
-                self.add()
+                self._add()
             elif opcode == 2:
-                self.multiply()
+                self._multiply()
             elif opcode == 3:
-                self.input()
+                self._input()
             elif opcode == 4:
-                self.output()
+                self._output()
             elif opcode == 5:
-                self.jump_if_true()
+                self._jump_if_true()
             elif opcode == 6:
-                self.jump_if_false()
+                self._jump_if_false()
             elif opcode == 7:
-                self.less_than()
+                self._less_than()
             elif opcode == 8:
-                self.equals()
+                self._equals()
             elif opcode == 9:
-                self.set_relative_base()
+                self._set_relative_base()
             elif opcode == 99:
-                self.halt()
+                self._halt()
             else:
                 raise ValueError(f"Unknown opcode: {opcode} at position {self.instruction_pointer}")
         
-    def set_memory(self, address, value):
+    def set_memory(self, address: int, value: int):
         """Set data at given address to value"""
         if address < len(self.memory):
             self.memory[address] = value
         else:
             self.extended_memory[address] = value
         
-    def get_memory(self, address):
+    def get_memory(self, address: int):
         """Get data at given address"""
         if address < len(self.memory):
             return self.memory[address]
@@ -67,16 +72,11 @@ class IntCode():
     def core_dump(self):
         return self.memory
 
-    def accept_input(self, input_value):
+    def accept_input(self, input_value: int):
         self.input_queue.append(input_value)
 
-    def read_next(self, addressing_mode = AddressingMode.POSITION):
-        """
-        Read the next value from memory and advance the instruction pointer.
-
-        Keyword arguments:
-        addressing_mode -- of type AddressingMode
-        """
+    def _read_next(self, addressing_mode: AddressingMode = AddressingMode.POSITION):
+        """Read the next value from memory and advance the instruction pointer."""
         if addressing_mode == AddressingMode.IMMEDIATE:
             result = self.get_memory(self.instruction_pointer)
         elif addressing_mode == AddressingMode.RELATIVE:
@@ -87,109 +87,110 @@ class IntCode():
         self.instruction_pointer += 1
         return result
 
-    def get_destination(self, addressing_mode):
-        destination = self.read_next(AddressingMode.IMMEDIATE)
+    def _get_destination(self, addressing_mode: AddressingMode):
+        """Get the destination from the next value in memory."""
+        destination = self._read_next(AddressingMode.IMMEDIATE)
         if addressing_mode == AddressingMode.RELATIVE:
             destination += self.relative_base
         return destination
             
-    def halt(self):
+    def _halt(self):
         self.instruction_pointer += 1
         self.halted = True
                 
-    def add(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _add(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        addend1 = self.read_next(addressing_modes % 10)
+        addend1 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        addend2 = self.read_next(addressing_modes % 10)
+        addend2 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        destination = self.get_destination(addressing_modes % 10)
+        destination = self._get_destination(addressing_modes % 10)
         summand = addend1 + addend2
         self.set_memory(destination, summand)
         return summand
         
-    def multiply(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _multiply(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        factor1 = self.read_next(addressing_modes % 10)
+        factor1 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        factor2 = self.read_next(addressing_modes % 10)
+        factor2 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        destination = self.get_destination(addressing_modes % 10)
+        destination = self._get_destination(addressing_modes % 10)
         product = factor1 * factor2
         self.set_memory(destination, product)
         return product
         
-    def input(self):
+    def _input(self):
         if len(self.input_queue) == 0 and not self.interactive_mode:
             # If there's not input and we aren't in interactive mode, set the waiting flag and return
             # before altering the instruction pointer
             self.waiting_for_input = True
             return
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        destination = self.get_destination(addressing_modes % 10)
+        destination = self._get_destination(addressing_modes % 10)
         if len(self.input_queue) == 0:
-               value = int(input("Enter an integer: "))
+               value = int(_input("Enter an integer: "))
         else:
             value = self.input_queue.pop(0)
         self.set_memory(destination, value)
         
-    def output(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _output(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        value = self.read_next(addressing_modes % 10)
+        value = self._read_next(addressing_modes % 10)
         self.output_values.append(value) 
         
-    def jump_if_true(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _jump_if_true(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        value = self.read_next(addressing_modes % 10)
+        value = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        address = self.read_next(addressing_modes % 10)
+        address = self._read_next(addressing_modes % 10)
         if value != 0:
             self.instruction_pointer = address
 
-    def jump_if_false(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _jump_if_false(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        value = self.read_next(addressing_modes % 10)
+        value = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        address = self.read_next(addressing_modes % 10)
+        address = self._read_next(addressing_modes % 10)
         if value == 0:
             self.instruction_pointer = address
             
-    def less_than(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _less_than(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        param1 = self.read_next(addressing_modes % 10)
+        param1 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        param2 = self.read_next(addressing_modes % 10)
+        param2 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        destination = self.get_destination(addressing_modes % 10)
+        destination = self._get_destination(addressing_modes % 10)
         if param1 < param2:
             self.set_memory(destination, 1)
         else:
             self.set_memory(destination, 0)
         
-    def equals(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _equals(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        param1 = self.read_next(addressing_modes % 10)
+        param1 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        param2 = self.read_next(addressing_modes % 10)
+        param2 = self._read_next(addressing_modes % 10)
         addressing_modes //= 10
-        destination = self.get_destination(addressing_modes % 10)
+        destination = self._get_destination(addressing_modes % 10)
         if param1 == param2:
             self.set_memory(destination, 1)
         else:
             self.set_memory(destination, 0)
 
-    def set_relative_base(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
+    def _set_relative_base(self):
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        offset = self.read_next(addressing_modes % 10)
+        offset = self._read_next(addressing_modes % 10)
         self.relative_base += offset
     
     def disassemble(self):
@@ -214,24 +215,27 @@ class IntCode():
         """
         
     def disassemble_value(self, value, parameter_mode):
+        raise NotImplementedError("Disassemble needs to be updated")
+        """
         if parameter_mode == 1:
             return f"#{value}"
         else:
             return f"{value}"
+        """
             
     def disassemble_add(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
-        addend1 = self.read_next(AddressingMode.IMMEDIATE)
-        addend2 = self.read_next(AddressingMode.IMMEDIATE)
-        summand = self.read_next(AddressingMode.IMMEDIATE)
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
+        addend1 = self._read_next(AddressingMode.IMMEDIATE)
+        addend2 = self._read_next(AddressingMode.IMMEDIATE)
+        summand = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         return f"{self.instruction_pointer - 4}: {summand} = {self.disassemble_value(addend1, addressing_modes % 10)} + {self.disassemble_value(addend2, addressing_modes // 10 % 10)}"
         
     def disassemble_multiply(self):
-        instruction = self.read_next(AddressingMode.IMMEDIATE)
-        factor1 = self.read_next(AddressingMode.IMMEDIATE)
-        factor2 = self.read_next(AddressingMode.IMMEDIATE)
-        product = self.read_next(AddressingMode.IMMEDIATE)
+        instruction = self._read_next(AddressingMode.IMMEDIATE)
+        factor1 = self._read_next(AddressingMode.IMMEDIATE)
+        factor2 = self._read_next(AddressingMode.IMMEDIATE)
+        product = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
         return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(factor1, addressing_modes % 10)} * {self.disassemble_value(factor2, addressing_modes // 10 % 10)}"
         
