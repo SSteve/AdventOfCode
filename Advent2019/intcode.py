@@ -194,6 +194,7 @@ class IntCode():
     
     def disassemble(self):
         raise NotImplementedError("Disassemble needs to be updated")
+        """
         instruction_strings = []
         starting_instruction_pointer = self.instruction_pointer
         self.instruction_pointer = 0
@@ -210,6 +211,7 @@ class IntCode():
                 raise ValueError(f"Unknown opcode: {opcode} at position {self.instruction_pointer}")
         self.instruction_pointer = starting_instruction_pointer
         return "\n".join(instruction_strings)
+        """
         
     def disassemble_value(self, value, parameter_mode):
         if parameter_mode == 1:
