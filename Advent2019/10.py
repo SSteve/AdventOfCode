@@ -72,14 +72,9 @@ class AsteroidMap:
             while (test_location + delta).within_bounds(self.width, self.height):
                 test_location += delta
                 blocked.update([test_location])
-        result = -1 # Start at -1 because the location does not block itself
-
-        # I'm sure there's a more pythonic way of doing this
-        for p in self.locations:
-            if p not in blocked:
-                result += 1
-
-        return result
+                
+        # Subtract 1 because the location does not block itself
+        return sum(1 for p in self.locations if p not in blocked) - 1
 
     def best_location(self) -> Tuple[Point, int]:
         result = Point(-1, -1)
