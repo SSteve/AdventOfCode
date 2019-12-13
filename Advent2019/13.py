@@ -1,0 +1,1 @@
+return sum(1 for x in board.values() if x==2)
