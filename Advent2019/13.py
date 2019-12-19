@@ -1,5 +1,6 @@
 from intcode import IntCode
 from math import inf
+from time import sleep
 from typing import Dict, List, NamedTuple
 
 class Point(NamedTuple):
@@ -13,13 +14,12 @@ class GameState(NamedTuple):
 
 TILES: Dict[int, str] = {0: " ", 1: "#", 2: "X", 3: "—", 4: "o"}
 
-def show_screen(values: List[int], x_range: int, y_range: int) -> int:
+def show_screen(values: List[int], pixels: Dict[Point, int]) -> int:
     score = -1
     index = 0
     blocks = 0
     paddle: Point = Point(0, 0)
     ball: Point = Point(0, 0)
-    pixels: Dict[Point, int] = {}
     while index < len(values):
         if values[index] == -1 and values[index + 1] == 0:
             score = values[index + 2]
@@ -31,14 +31,15 @@ def show_screen(values: List[int], x_range: int, y_range: int) -> int:
                 paddle = point
             elif tile == 4:
                 ball = point
+            print(f"\033[{values[index + 1] + 10};{values[index] + 10}H{TILES[values[index + 2]]}", end='')
         index += 3
-    for y in range(y_range):
-        for x in range(x_range):
-            print(TILES[pixels[Point(x, y)]], end='')
-            if pixels[Point(x, y)] == 2:
-                blocks += 1
-        print()
-    print(f"Score: {score}")
+
+    blocks = sum(1 for pixel in pixels.values() if pixel == 2)
+    if score > 0:
+        print(f"\033[5;0HScore: {score}", end='')
+    print(f"\033[6;0HBlocks: {blocks}  ", end='')
+    # Print a line with a carriage return to flush output buffer
+    print(f"\033[35;0H ")
     return GameState(paddle, ball, blocks)
 
 if __name__ == '__main__':
@@ -47,21 +48,8 @@ if __name__ == '__main__':
     computer.run()
 
     pixels: Dict[Point, int] = {}
-    index: int = 0
-    min_x: int = inf
-    max_x: int = -inf
-    min_y: int = inf
-    max_y: int = -inf
-    while index < len(computer.output_values):
-        point = Point(computer.output_values[index], computer.output_values[index + 1])
-        pixels[point] = computer.output_values[index + 2]
-        index += 3
-        min_x = min(min_x, point.x)
-        max_x = max(max_x, point.x)
-        min_y = min(min_y, point.y)
-        max_y = max(max_y, point.y)
-    game_state: GameState = show_screen(computer.output_values, max_x + 1, max_y + 1)
-    print(f"{game_state.blocks} blocks")
+    game_state: GameState = show_screen(computer.output_values, pixels)
+    # print(f"{game_state.blocks} blocks")
 
     with open("13.txt") as infile:
         computer: IntCode = IntCode(infile.readline(), interactive=False)
@@ -71,7 +59,9 @@ if __name__ == '__main__':
     while game_state.blocks > 0 and game_state.ball.y < game_state.paddle.y:
         computer.accept_input(next_input)
         computer.run()
-        game_state: GameState = show_screen(computer.output_values, max_x + 1, max_y + 1)
+        game_state: GameState = show_screen(computer.output_values, pixels)
+        sleep(0.02)
+        computer.output_values.clear()
         if game_state.ball.x > game_state.paddle.x:
             next_input = 1
         elif game_state.ball.x < game_state.paddle.x:
