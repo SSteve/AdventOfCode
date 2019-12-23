@@ -1,6 +1,11 @@
+#I couldn't figure this one out so I copied the solution from https://github.com/joelgrus/advent2019/blob/master/day14/day14.py
+from __future__ import annotations
+
+import math
 import re
 
-from typing import Iterable, List, NamedTuple
+from collections import defaultdict
+from typing import Iterable, List, NamedTuple, Dict
 
 REACTIONS1 = """10 ORE => 10 A
 1 ORE => 1 B
@@ -58,53 +63,105 @@ REACTIONS5 = """171 ORE => 8 CNZTR
 7 XCVML => 6 RJRHP
 5 BHXH, 4 VRPVC => 5 LTCX"""
 
-compiled_element = re.compile(r"\s*(\d*)\s*(\D*)")
-
-class CompoundQuantity(NamedTuple):
+class Ingredient(NamedTuple):
     quantity: int
     compound: str
 
+    @staticmethod
+    def from_string(raw: str) -> Ingredient:
+        qty, compound = raw.strip().split(" ")
+        return Ingredient(int(qty), compound)
+
 class Reaction:
-    def __init__(self, quantities: Iterable[str], output: str):
-        self.reaction_inputs: List[CompoundQuantity] = []
-        for quantity in quantities:
-            match = re.match(compiled_element, quantity)
-            amount = int(match[1])
-            chemical = match[2]
-            self.reaction_inputs.append(CompoundQuantity(amount, chemical))
-        match = re.match(compiled_element, output)
-        self.reaction_output = CompoundQuantity(int(match[1]), match[2])
-        print(self.reaction_output)
+    """Describes an individual reaction in a NanoFactory"""
+    def __init__(self, reaction_inputs: Iterable[str], output: str):
+        self.reaction_inputs = [Ingredient.from_string(inp) for inp in reaction_inputs]
+        self.reaction_output = Ingredient.from_string(output)
+
+    def __repr__(self) -> str:
+        string_builder: List[str] = []
+        for (index, reaction_input) in enumerate(self.reaction_inputs):
+            string_builder.append(f"{reaction_input.quantity} {reaction_input.compound}")
+            if index < len(self.reaction_inputs) - 1:
+                string_builder.append(", ")
+        string_builder.append(f" => {self.reaction_output.quantity} {self.reaction_output.compound}")
+        return ''.join(string_builder)
 
 
 class NanoFactory:
     def __init__(self, reaction_strings: Iterable[str]):
-        self.reactions: List[Reaction] = []
+        # Sample reaction_string:
+        # 10 NXZXH, 7 ZFXP, 7 ZCBM, 7 MHNLM, 1 BDKZM, 3 VQKM => 5 RMZS
+        self.reactions: Dict[str, Reaction] = {}
         for reaction in reaction_strings:
-            input_output = reaction.strip().split(" => ")
-            inputs = input_output[0].split(",")
-            self.reactions.append(Reaction(inputs, input_output[1]))
+            lhs, rhs = reaction.strip().split(" => ")
+            inputs = lhs.split(", ")
+            reaction = Reaction(inputs, rhs)
+            self.reactions[reaction.reaction_output.compound] = reaction
 
+    def least_ore(self, fuel_needed: int = 1):
+        requirements = {'FUEL': fuel_needed}
+        ore_needed = 0
 
-def ore_cost(factory: NanoFactory) -> int:
-    return 0
+        def done() -> bool:
+            return all(qty <= 0 for qty in requirements.values())
 
+        while not done():
+            key = next(iter(chemical for chemical, qty in requirements.items() if qty > 0))
+            qty_needed = requirements[key]
+            reaction = self.reactions[key]
+            num_times = math.ceil(qty_needed / reaction.reaction_output.quantity)
+            requirements[key] -= num_times * reaction.reaction_output.quantity
+
+            for ingredient in reaction.reaction_inputs:
+                if ingredient.compound == "ORE":
+                    ore_needed += ingredient.quantity * num_times
+                else:
+                    requirements[ingredient.compound] = requirements.get(ingredient.compound, 0) + num_times * ingredient.quantity
+
+        return ore_needed
+
+    def fuel_from_ore(self, available_ore: int = 1_000_000_000_000):
+        fuel_lo = 10
+        fuel_hi = 1_000_000_000
+
+        while fuel_lo < fuel_hi - 1:
+            fuel_mid = (fuel_lo + fuel_hi) // 2
+            ore_mid = self.least_ore(fuel_mid)
+
+            if ore_mid <= available_ore:
+                fuel_lo = fuel_mid
+            else:
+                fuel_hi = fuel_mid
+
+        # We've bracketed the fuel amount. Now we need to figure out which one is correct.
+        return fuel_hi if self.least_ore(fuel_hi) < available_ore else fuel_lo
+
+        
 factory = NanoFactory(REACTIONS1.split("\n"))
-#assert(ore_cost(factory) == 31)
+assert(factory.reactions['C'].reaction_inputs) == [Ingredient(7, 'A'), Ingredient(1, 'B')]
+assert(factory.reactions['D'].reaction_inputs) == [Ingredient(7, 'A'), Ingredient(1, 'C')]
+assert(factory.least_ore() == 31)
 
 factory = NanoFactory(REACTIONS2.split("\n"))
-#assert(ore_cost(factory) == 165)
+assert(factory.least_ore() == 165)
 
 factory = NanoFactory(REACTIONS3.split("\n"))
-#assert(ore_cost(factory) == 13312)
+assert(factory.least_ore() == 13312)
+assert(factory.fuel_from_ore() == 82892753)
 
 factory = NanoFactory(REACTIONS4.split("\n"))
-#assert(ore_cost(factory) == 180697)
+assert(factory.least_ore() == 180697)
+assert(factory.fuel_from_ore() == 5586022)
 
 factory = NanoFactory(REACTIONS5.split("\n"))
-#assert(ore_cost(factory) == 2210736)
+assert(factory.least_ore() == 2210736)
+assert(factory.fuel_from_ore() == 460664)
 
 with open("14.txt") as infile:
     factory = NanoFactory(infile)
 
-print(factory.reactions[0])
+print(f"Part one: minimum ore required: {factory.least_ore()}")
+fuel_from_ore = factory.fuel_from_ore()
+print(f"Part two: can make {fuel_from_ore} fuel from a trillion ore")
+print(factory.least_ore(fuel_from_ore))

@@ -132,7 +132,7 @@ class IntCode():
         addressing_modes = instruction // 100
         destination = self._get_destination(addressing_modes % 10)
         if len(self.input_queue) == 0:
-               value = int(_input("Enter an integer: "))
+               value = int(input("Enter an integer: "))
         else:
             value = self.input_queue.pop(0)
         self.set_memory(destination, value)
@@ -213,7 +213,7 @@ class IntCode():
         self.instruction_pointer = starting_instruction_pointer
         return "\n".join(instruction_strings)
         """
-        
+
     def disassemble_value(self, value, parameter_mode):
         raise NotImplementedError("Disassemble needs to be updated")
         """
@@ -222,7 +222,7 @@ class IntCode():
         else:
             return f"{value}"
         """
-            
+
     def disassemble_add(self):
         instruction = self._read_next(AddressingMode.IMMEDIATE)
         addend1 = self._read_next(AddressingMode.IMMEDIATE)

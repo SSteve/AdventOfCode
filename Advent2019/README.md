@@ -24,7 +24,7 @@ I have too much going on in December 2019 to be able to participate in real time
 - Dec 11. - [instructions](http://adventofcode.com/2019/day/11) + [solution](./11.py)
 - Dec 12. - [instructions](http://adventofcode.com/2019/day/12) + [solution](./12.py)
 - Dec 13. - [instructions](http://adventofcode.com/2019/day/13) + [solution](./13.py)
-- Dec 14. - [instructions](http://adventofcode.com/2019/day/14)
+- Dec 14. - [instructions](http://adventofcode.com/2019/day/14) + [solution](./14.py)
 - Dec 15. - [instructions](http://adventofcode.com/2019/day/15)
 - Dec 16. - [instructions](http://adventofcode.com/2019/day/16)
 - Dec 17. - [instructions](http://adventofcode.com/2019/day/17)
