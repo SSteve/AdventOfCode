@@ -126,8 +126,9 @@ class IntCode():
         
     def _input(self, modes: Deque[AddressingMode]):
         if len(self.input_queue) == 0 and not self.interactive_mode:
-            # If there's not input and we aren't in interactive mode, set the waiting flag and return
-            # before altering the instruction pointer
+            # If there's not input and we aren't in interactive mode, set the waiting flag and
+            # move the instruction pointer back to the beginning of this instruction
+            self.instruction_pointer -= 1
             self.waiting_for_input = True
             return
         destination = self._get_destination(modes.popleft())
@@ -342,5 +343,12 @@ if __name__ == "__main__":
     assert all(val == 0 for val in computer.output_values[:-1])
     # This is the diagnostic code
     assert computer.output_values[-1] == 15314507
+
+    from robot import Robot
+    # Use day 11 to test addressing mode calculations
+    with open("11.txt") as infile:
+        robot = Robot(infile.readline(), 0)
+    robot.run()
+    assert len(robot.painted_panels) == 2418
 
     print("All tests passed.")
