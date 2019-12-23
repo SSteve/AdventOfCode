@@ -106,7 +106,6 @@ class IntCode():
         return destination
             
     def _halt(self):
-        self.instruction_pointer += 1
         self.halted = True
                 
     def _add(self, modes: Deque[AddressingMode]):
