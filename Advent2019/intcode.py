@@ -1,4 +1,4 @@
-# TODO: Reduce code duplication by calculating addressing modes in run()
+import importlib
 
 from collections import defaultdict, deque
 from enum import IntEnum
@@ -344,8 +344,10 @@ if __name__ == "__main__":
     # This is the diagnostic code
     assert computer.output_values[-1] == 15314507
 
-    from robot import Robot
-    # Use day 11 to test addressing mode calculations
+    # The 'from' statement doesn't like file names that begin with a numeral, so I have to use import_module.
+    # Maybe next year I'll change my file naming convention.
+    Robot = importlib.import_module('11').Robot
+    # Use day 11 to test multiple runs with different inputs
     with open("11.txt") as infile:
         robot = Robot(infile.readline(), 0)
     robot.run()
