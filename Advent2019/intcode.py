@@ -1,9 +1,9 @@
 # TODO: Reduce code duplication by calculating addressing modes in run()
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from enum import IntEnum
 from queue import SimpleQueue
-from typing import Dict, List
+from typing import Dict, List, Deque
 
 class AddressingMode(IntEnum):
     POSITION = 0
@@ -32,30 +32,41 @@ class IntCode():
         # Set waiting_for_input to false in case we are restarting after receiving new input
         self.waiting_for_input = False
         while not self.halted and not self.waiting_for_input:
-            opcode: int = self.get_memory(self.instruction_pointer) % 100
+            opcode, modes = self.parse_instruction(self._read_next(AddressingMode.IMMEDIATE))
             if opcode == 1:
-                self._add()
+                self._add(modes)
             elif opcode == 2:
-                self._multiply()
+                self._multiply(modes)
             elif opcode == 3:
-                self._input()
+                self._input(modes)
             elif opcode == 4:
-                self._output()
+                self._output(modes)
             elif opcode == 5:
-                self._jump_if_true()
+                self._jump_if_true(modes)
             elif opcode == 6:
-                self._jump_if_false()
+                self._jump_if_false(modes)
             elif opcode == 7:
-                self._less_than()
+                self._less_than(modes)
             elif opcode == 8:
-                self._equals()
+                self._equals(modes)
             elif opcode == 9:
-                self._set_relative_base()
+                self._set_relative_base(modes)
             elif opcode == 99:
                 self._halt()
             else:
                 raise ValueError(f"Unknown opcode: {opcode} at position {self.instruction_pointer}")
         
+    @staticmethod
+    def parse_instruction(instruction: int) -> (int, Deque[AddressingMode]):
+        opcode = instruction % 100
+        instruction = instruction // 100
+        modes: deque[AddressingMode] = deque()
+        for _ in range(3):
+            modes.append(instruction % 10)
+            instruction = instruction // 10
+        return opcode, modes
+
+
     def set_memory(self, address: int, value: int):
         """Set data at given address to value"""
         if address < len(self.memory):
@@ -98,99 +109,71 @@ class IntCode():
         self.instruction_pointer += 1
         self.halted = True
                 
-    def _add(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        addend1 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        addend2 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        destination = self._get_destination(addressing_modes % 10)
+    def _add(self, modes: Deque[AddressingMode]):
+        addend1 = self._read_next(modes.popleft())
+        addend2 = self._read_next(modes.popleft())
+        destination = self._get_destination(modes.popleft())
         summand = addend1 + addend2
         self.set_memory(destination, summand)
         return summand
         
-    def _multiply(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        factor1 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        factor2 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        destination = self._get_destination(addressing_modes % 10)
+    def _multiply(self, modes: Deque[AddressingMode]):
+        factor1 = self._read_next(modes.popleft())
+        factor2 = self._read_next(modes.popleft())
+        destination = self._get_destination(modes.popleft())
         product = factor1 * factor2
         self.set_memory(destination, product)
         return product
         
-    def _input(self):
+    def _input(self, modes: Deque[AddressingMode]):
         if len(self.input_queue) == 0 and not self.interactive_mode:
             # If there's not input and we aren't in interactive mode, set the waiting flag and return
             # before altering the instruction pointer
             self.waiting_for_input = True
             return
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        destination = self._get_destination(addressing_modes % 10)
+        destination = self._get_destination(modes.popleft())
         if len(self.input_queue) == 0:
                value = int(input("Enter an integer: "))
         else:
             value = self.input_queue.pop(0)
         self.set_memory(destination, value)
         
-    def _output(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        value = self._read_next(addressing_modes % 10)
+    def _output(self, modes: Deque[AddressingMode]):
+        value = self._read_next(modes.popleft())
         self.output_values.append(value) 
         
-    def _jump_if_true(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        value = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        address = self._read_next(addressing_modes % 10)
+    def _jump_if_true(self, modes: Deque[AddressingMode]):
+        value = self._read_next(modes.popleft())
+        address = self._read_next(modes.popleft())
         if value != 0:
             self.instruction_pointer = address
 
-    def _jump_if_false(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        value = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        address = self._read_next(addressing_modes % 10)
+    def _jump_if_false(self, modes: Deque[AddressingMode]):
+        value = self._read_next(modes.popleft())
+        address = self._read_next(modes.popleft())
         if value == 0:
             self.instruction_pointer = address
             
-    def _less_than(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        param1 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        param2 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        destination = self._get_destination(addressing_modes % 10)
+    def _less_than(self, modes: Deque[AddressingMode]):
+        param1 = self._read_next(modes.popleft())
+        param2 = self._read_next(modes.popleft())
+        destination = self._get_destination(modes.popleft())
         if param1 < param2:
             self.set_memory(destination, 1)
         else:
             self.set_memory(destination, 0)
         
-    def _equals(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        param1 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        param2 = self._read_next(addressing_modes % 10)
-        addressing_modes //= 10
-        destination = self._get_destination(addressing_modes % 10)
+    def _equals(self, modes: Deque[AddressingMode]):
+        param1 = self._read_next(modes.popleft())
+        param2 = self._read_next(modes.popleft())
+        destination = self._get_destination(modes.popleft())
         if param1 == param2:
             self.set_memory(destination, 1)
         else:
             self.set_memory(destination, 0)
 
-    def _set_relative_base(self):
-        instruction = self._read_next(AddressingMode.IMMEDIATE)
-        addressing_modes = instruction // 100
-        offset = self._read_next(addressing_modes % 10)
+    def _set_relative_base(self, modes: Deque[AddressingMode]):
+        offset = self._read_next(modes.popleft())
         self.relative_base += offset
     
     def disassemble(self):
@@ -229,7 +212,7 @@ class IntCode():
         addend2 = self._read_next(AddressingMode.IMMEDIATE)
         summand = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        return f"{self.instruction_pointer - 4}: {summand} = {self.disassemble_value(addend1, addressing_modes % 10)} + {self.disassemble_value(addend2, addressing_modes // 10 % 10)}"
+        return f"{self.instruction_pointer - 4}: {summand} = {self.disassemble_value(addend1, modes.popleft())} + {self.disassemble_value(addend2, addressing_modes // 10 % 10)}"
         
     def disassemble_multiply(self):
         instruction = self._read_next(AddressingMode.IMMEDIATE)
@@ -237,7 +220,7 @@ class IntCode():
         factor2 = self._read_next(AddressingMode.IMMEDIATE)
         product = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(factor1, addressing_modes % 10)} * {self.disassemble_value(factor2, addressing_modes // 10 % 10)}"
+        return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(factor1, modes.popleft())} * {self.disassemble_value(factor2, addressing_modes // 10 % 10)}"
         
     def disassemble_halt(self):
         return f"{self.instruction_pointer}: halt"
@@ -351,5 +334,14 @@ if __name__ == "__main__":
     computer = IntCode("104,1125899906842624,99")
     computer.run()
     assert computer.output_values[0] == 1125899906842624
+
+    # Use day 5 diagnostic program to test the computer
+    with open("5.txt", "r") as infile:
+        computer = IntCode(infile.readline(), [1])
+    computer.run()
+    # All the values except the last should be 0
+    assert all(val == 0 for val in computer.output_values[:-1])
+    # This is the diagnostic code
+    assert computer.output_values[-1] == 15314507
 
     print("All tests passed.")
