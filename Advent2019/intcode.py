@@ -12,13 +12,13 @@ class AddressingMode(IntEnum):
 
 class IntCode():
     def __init__(self, initial_memory: str, input_queue: List[int] = [], interactive: bool = True):
-        self.memory: List[int] = [int(x) for x in initial_memory.split(",")]
-        self.instruction_pointer:int = 0
-        self.halted: bool = False
-        self.waiting_for_input: bool = False
-        self.input_queue: List[int] = input_queue
+        self.memory = [int(x) for x in initial_memory.split(",")]
+        self.instruction_pointer: int = 0
+        self.halted = False
+        self.waiting_for_input = False
+        self.input_queue: Deque[int] = deque(input_queue)
         self.output_values: List[int] = []
-        self.relative_base: int = 0
+        self.relative_base = 0
         # This is kindof a kludge. It was added after the spec of needing more memory than the original
         # program size. But it works.
         self.extended_memory: Dict[int, int] = defaultdict(int)
@@ -26,7 +26,7 @@ class IntCode():
         # In interactive mode, input is taken from the terminal. When interactive mode
         # is false, the computer stops and can be restarted after input is available.
         # Defaults to true so that previous problems don't break.
-        self.interactive_mode: bool = interactive
+        self.interactive_mode = interactive
         
     def run(self):
         # Set waiting_for_input to false in case we are restarting after receiving new input
@@ -135,7 +135,7 @@ class IntCode():
         if len(self.input_queue) == 0:
                value = int(input("Enter an integer: "))
         else:
-            value = self.input_queue.pop(0)
+            value = self.input_queue.popleft()
         self.set_memory(destination, value)
         
     def _output(self, modes: Deque[AddressingMode]):
