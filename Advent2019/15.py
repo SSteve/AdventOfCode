@@ -80,6 +80,7 @@ def always_false(droid: Droid) -> bool:
     return False
 
 TILES: Dict[int, str] = {0: "X", 1: " ", 2: "o"}
+COLORS: Dict[int, str] = {0: "37m[2m", 1: "37m", 2: "32m"}
 
 if __name__ == '__main__':
     with open("15.txt") as infile:
@@ -124,7 +125,8 @@ if __name__ == '__main__':
                     next_round.append(new_point)
                     Droid.master_map[new_point] = 2
         for point in next_round:
-            print(f"\033[{point.y + y_offset};{point.x + x_offset}H{TILES[Droid.master_map[point]]}", end='')
+            location_code = Droid.master_map[point]
+            print(f"\033[{COLORS[location_code]}\033[{point.y + y_offset};{point.x + x_offset}H{TILES[location_code]}", end='')
         rounds += 1
 
     # 327 is too high
