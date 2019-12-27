@@ -83,6 +83,11 @@ class IntCode():
     def core_dump(self):
         return self.memory
 
+    def show_output_message(self):
+        while len(self.output_values) > 0 and self.output_values[0] < 256:
+            ch = self.output_values.pop(0)
+            print(chr(ch), end='')
+
     def accept_input(self, input_value: int):
         self.input_queue.append(input_value)
 
