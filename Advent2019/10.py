@@ -11,7 +11,7 @@ class Point(NamedTuple):
     x: int = 0
     y: int = 0
 
-    def simplified(self) -> Point:
+    def simplified(self) -> 'Point':
         """
         Returns the point divided by the gcd of x and y
 
@@ -24,24 +24,25 @@ class Point(NamedTuple):
     def within_bounds(self, x: int, y: int) -> bool:
         return 0 <= self.x < x and 0 <= self.y < y
 
-    def distance_to(self, other: Point) -> Point:
+    def distance_to(self, other: 'Point') -> 'Point':
         return sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
 
-    def __add__(self, other: Point) -> Point:
+    def __add__(self, other: 'Point') -> 'Point':
         return Point(self.x + other.x, self.y + other.y)
 
-    def __sub__(self, other: Point) -> Point:
+    def __sub__(self, other: 'Point') -> 'Point':
         return Point(self.x - other.x, self.y - other.y)
 
-    def __mul__(self, other: object) -> Point:
+    def __mul__(self, other: object) -> 'Point':
         if isinstance(other, int):
             return Point(self.x * other, self.y * other)
         raise TypeError("Points can only be multiplied by an int")
 
-    def __div__(self, other:object) -> Point:
+    def __div__(self, other: object) -> 'Point':
         if isinstance(other, int):
             return Point(self.x // other, self.y // other)
         raise TypeError("Points can only be divided by ints")
+
 
 class AsteroidMap:
     def __init__(self, asteroid_map: Iterable[str]):
@@ -72,7 +73,7 @@ class AsteroidMap:
             while (test_location + delta).within_bounds(self.width, self.height):
                 test_location += delta
                 blocked.update([test_location])
-                
+
         # Subtract 1 because the location does not block itself
         return sum(1 for p in self.locations if p not in blocked) - 1
 
@@ -98,7 +99,7 @@ class AsteroidMap:
                 nearest_index = index
         return nearest_index
 
-    def vaporize_asteroids(self, origin: Point, stop_count = 200) -> Point:
+    def vaporize_asteroids(self, origin: Point, stop_count=200) -> Point:
         """Vaporize visible asteroids until reaching stop_count and return the location of the last vaporized asteroid"""
         angles: DefaultDict[float, List[int]] = defaultdict(list)
         up_angle = atan2(1, 0)
@@ -121,6 +122,7 @@ class AsteroidMap:
             angles[angle].append(index)
         sortedAngles = dict(sorted(angles.items()))
         vaporized = 0
+        vaporized_index = -1
         while vaporized < stop_count:
             for angle in sortedAngles.keys():
                 indices = sortedAngles[angle]
@@ -214,12 +216,12 @@ if __name__ == '__main__':
     assert asteroids.visible_count(Point(4, 4)) == 7, "Wrong visible count for 4, 4"
     assert location == Point(3, 4), f"Wrong location for test 1: {location}"
     assert visible == 8, f"Wrong count for test 1: {visible}"
-    
+
     asteroids = AsteroidMap(TEST2.split('\n'))
     location, visible = asteroids.best_location()
     assert location == Point(5, 8)
     assert visible == 33
-    
+
     asteroids = AsteroidMap(TEST3.split('\n'))
     location, visible = asteroids.best_location()
     assert location == Point(1, 2)
@@ -229,7 +231,7 @@ if __name__ == '__main__':
     location, visible = asteroids.best_location()
     assert location == Point(6, 3)
     assert visible == 41
-    
+
     asteroids = AsteroidMap(TEST5.split('\n'))
     location, visible = asteroids.best_location()
     assert location == Point(11, 13)
@@ -242,5 +244,5 @@ if __name__ == '__main__':
         asteroids = AsteroidMap(infile)
     location, visible = asteroids.best_location()
     print(f"{visible} asteroids visible from {location}")
-    
+
     print(f"200th vaporized asteroid is at {asteroids.vaporize_asteroids(location)}")
