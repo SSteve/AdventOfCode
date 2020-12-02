@@ -24,7 +24,7 @@ class PasswordSpec:
 
     def isValid1(self) -> bool:
         letterCount = self.password.count(self.letter)
-        return letterCount >= self.lowCount and letterCount <= self.highCount
+        return self.lowCount <= letterCount <= self.highCount
 
     def isValid2(self) -> bool:
         return (self.password[self.lowCount - 1] == self.letter) ^ (self.password[self.highCount - 1] == self.letter)
