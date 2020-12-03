@@ -9,10 +9,9 @@
 - [2018](https://github.com/SSteve/AdventOfCode/tree/master/Advent2018)
 - [2019](https://github.com/SSteve/AdventOfCode/tree/master/Advent2019)
 
-Thinking about using Swift this year.
 ### The Puzzles
-- Dec 1 - [instructions](http://adventofcode.com/2020/day/1) - [solution](./1.swift) (Swift)
-- Dec 2 - [instructions](http://adventofcode.com/2020/day/2)
+- Dec 1 - [instructions](http://adventofcode.com/2020/day/1) - [solution](./1.py) (Python)
+- Dec 2 - [instructions](http://adventofcode.com/2020/day/2) - [solution](./2.py) (Python)
 - Dec 3 - [instructions](http://adventofcode.com/2020/day/3)
 - Dec 4 - [instructions](http://adventofcode.com/2020/day/4)
 - Dec 5 - [instructions](http://adventofcode.com/2020/day/5)
