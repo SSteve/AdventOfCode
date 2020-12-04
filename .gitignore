@@ -1,3 +1,8 @@
+# Assembler products for Advent of Code
+*.o
+# I'm giving the executables the .app extension so it's easy to add them to .gitignore
+*.app
+
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
