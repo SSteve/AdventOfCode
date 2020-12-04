@@ -12,7 +12,7 @@
 ### The Puzzles
 - Dec 1 - [instructions](http://adventofcode.com/2020/day/1) - [solution](./1.py) (Python)
 - Dec 2 - [instructions](http://adventofcode.com/2020/day/2) - [solution](./2.py) (Python)
-- Dec 3 - [instructions](http://adventofcode.com/2020/day/3)
+- Dec 3 - [instructions](http://adventofcode.com/2020/day/3) - [solution](./3.py) (Python)
 - Dec 4 - [instructions](http://adventofcode.com/2020/day/4)
 - Dec 5 - [instructions](http://adventofcode.com/2020/day/5)
 - Dec 6 - [instructions](http://adventofcode.com/2020/day/6)
