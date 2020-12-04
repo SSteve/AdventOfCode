@@ -41,7 +41,7 @@ TEST = """..##.......
 if __name__ == "__main__":
     slopes = [Vector(1, 1), Vector(3, 1), Vector(5, 1), Vector(7, 1), Vector(1, 2)]
 
-    ## Tests
+    # Tests
     testCounts = [2, 7, 3, 4, 2]
     testForest = ForestMap(TEST.split("\n"))
     testResults = []
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     testProduct = math.prod(testResults)
     assert testProduct == math.prod(testCounts),\
         f"Product was {testProduct} should be {math.prod(testResults)}"
-    ## End of tests
+    # End of tests
 
     with open("3.txt", "r") as infile:
         forest = ForestMap(infile.read().splitlines())
