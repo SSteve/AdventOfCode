@@ -34,8 +34,10 @@ def create_readme(year: int):
             day_string += f" - [part 2 solution](./{day}b.py) (Python)"
         if os.path.isfile(f"Advent{year}/{day}.swift"):
             day_string += f" - [solution](./{day}.swift) (Swift)"
-        if os.path.isfile(f"Advent{year}/{day}.cs"):
-            day_string += f" - [solution](./{day}.cs) (C#)"
+        if os.path.isfile(f"Advent{year}/Day{day}/Day{day}/Program.cs"):
+            day_string += f" - [solution](./Day{day}/Day{day}/Program.cs) (C#)"
+        if os.path.isfile(f"Advent{year}/{day}.s"):
+            day_string += f" - [solution](./{day}.s) (ARM64 asm)"
         print(day_string)
 
 

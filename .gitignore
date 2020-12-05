@@ -134,3 +134,37 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# C# stuff
+bin
+Release
+Debug
+obj
+*.suo
+*.user
+*.cache
+*.exe
+*.msi
+*.o
+*.obj
+*.hi
+desktop.ini
+*.pidb
+*.ncb
+*.userprefs
+*.docstates
+*.sdf
+*.opensdf
+*.VisualState.xml
+*~
+*.ipch
+TempFiles/
+rcs.log
+*.orig
+*.vsp
+*.psess
+.vs
+packages/*.*
+*.obproj.map
+*.tmp_proj
+*.mo
