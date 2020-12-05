@@ -1,36 +1,35 @@
 import math
+from typing import Set
 
-def partition(values: str, width: int, lowSplit: str, highSplit: str) -> int:
-    low = 0
-    high = width - 1
-    for char in values:
-        if char == lowSplit:
-            high -= (high - low + 1) // 2
-        else:
-            low += (high - low + 1) // 2
-    return low
+characterValues = {'F': 0, 'B': 1, 'L': 0, 'R': 1}
+
 
 def seatId(code: str) -> int:
-    return partition(code[:7], 128, 'F', 'R') * 8 + partition(code[7:], 8, 'L', 'R')
-    
-    
+    id = 0
+    for char in code:
+        id = id * 2 + characterValues[char]
+    return id
+
 assert seatId('FBFBBFFRLR') == 357
 assert seatId('BFFFBBFRRR') == 567
 assert seatId('FFFBBBFRRR') == 119
 assert seatId('BBFFBBFRLL') == 820
 
-highest = 0
+highest = -1
 lowest = 1e10
-seats = set()
+seats: Set[int] = set()
+
 with open("5.txt", "r") as infile:
     for boardingPassCode in infile.read().splitlines():
         id = seatId(boardingPassCode)
         lowest = min(lowest, id)
         highest = max(highest, id)
+        # Add the id to the set of seats.
         seats.add(id)
 
 print(f"Part 1: {highest}")
 
+# Find the missing seat in the set of seats.
 mySeat = lowest + 1
 while mySeat in seats:
     mySeat += 1
