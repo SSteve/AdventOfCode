@@ -10,7 +10,7 @@
 - [2019](https://github.com/SSteve/AdventOfCode/tree/master/Advent2019)
 
 ### The Puzzles
-- Dec 1 - [instructions](http://adventofcode.com/2020/day/1) - [solution](./1.py) (Python) - [solution](./Day1/Day1/Program.cs) (C#) - [solution](./1.s) (ARM64 asm)
+- Dec 1 - [instructions](http://adventofcode.com/2020/day/1) - [solution](./1.py) (Python) - [solution](./Day1/Day1/Program.cs) (C#) - [solution](./1.S) (ARM64 asm)
 - Dec 2 - [instructions](http://adventofcode.com/2020/day/2) - [solution](./2.py) (Python)
 - Dec 3 - [instructions](http://adventofcode.com/2020/day/3) - [solution](./3.py) (Python)
 - Dec 4 - [instructions](http://adventofcode.com/2020/day/4) - [solution](./4.py) (Python)

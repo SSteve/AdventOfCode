@@ -1,7 +1,16 @@
 all: day1
 
-day1: 1.o
-	ld -o 1.app 1.o
+ifdef DEBUG
+DEBUGFLGS = -g
+else
+DEBUGFLGS =
+endif
+
+day1: 1.S armmacros.s fileio.S
+	gcc $(DEBUGFLGS) -o 1.app 1.S
 
 %.o: %.s
-	as $< -o $@
+	as $(DEBUGFLGS) $< -o $@
+
+%.o: %.S
+	gcc $(DEBUGFLGS) -c $< -o $@

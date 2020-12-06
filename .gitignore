@@ -3,6 +3,9 @@
 # I'm giving the executables the .app extension so it's easy to add them to .gitignore
 *.app
 
+*.swp
+.gdb_history
+
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
