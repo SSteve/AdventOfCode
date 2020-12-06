@@ -81,7 +81,7 @@ skipNewlines:
 	// Read the next character in the buffer
 	ldrb	w13, [x11], #1		// Load the next character into w13.
 	cmp	w13, #'0'		// See if the character is less than ASCII 0.
-	b.ge	nextDigit		// If not, it's a digit so get the next number.
+	b.ge	nextDigit		// If so, it's a digit so get the next digit.
 	b	skipNewlines		// If not, keep skipping any newlines.
 
 finishedLoading:	
