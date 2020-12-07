@@ -54,8 +54,18 @@
 	mov	x3, X\regnum	// For the %x.
 	mov	x1, #\regnum	// The register number for the %c.
 	add	x1, x1, #'0'	// Convert the register number to ascii.
-	ldr	x0, =printfStr	// The format string for printf.
+	ldr	x0, =printRegStr	// The format string for printf.
 	bl	printf		// Call printf.
+	popall
+.endm
+
+// Print a string and the value in a register.
+.macro	printVal	str, regnum
+	pushall
+	mov	x2, X\regnum
+	ldr	x1, =\str
+	ldr	x0, =printValStr
+	bl printf
 	popall
 .endm
 
@@ -72,9 +82,11 @@
 .endm
 
 .data
-// printf format string for printReg
-printfStr:
+// printf format strings for macros
+printRegStr:
 	.asciz	"X%c = %32ld, 0x%016lx\n"
+printValStr:
+	.asciz "%s%ld\n"
 	.align	4
 .text
 
