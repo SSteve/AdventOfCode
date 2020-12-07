@@ -1,4 +1,4 @@
-all: day1
+all: day1 day2
 
 ifdef DEBUG
 DEBUGFLGS = -g
@@ -9,6 +9,8 @@ endif
 day1: 1.S armmacros.s fileio.S
 	gcc $(DEBUGFLGS) -o 1.app 1.S
 
+day2: 2.S armmacros.s fileio.S
+	gcc $(DEBUGFLGS) -o 2.app 2.S
 %.o: %.s
 	as $(DEBUGFLGS) $< -o $@
 
