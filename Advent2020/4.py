@@ -47,6 +47,7 @@ passportLineRegex = re.compile(r"([a-z]{3}):(\S*)")
 hexColor = re.compile(r"#[a-f0-9]{6}")
 passportID = re.compile(r"\d{9}")
 
+
 class Passport:
     fields: Dict[str, str]
 
@@ -74,28 +75,28 @@ class Passport:
                 unitPosition = fieldValue.find('in')
                 height = int(fieldValue[:unitPosition])
                 return 59 <= height <= 76
-        except:
+        except ValueError:
             return False
 
     @staticmethod
-    def byrValid(fieldValue: str)  -> bool:
+    def byrValid(fieldValue: str) -> bool:
         try:
             return 1920 <= int(fieldValue) <= 2002
-        except:
+        except ValueError:
             return False
 
     @staticmethod
     def eyrValid(fieldValue: str) -> bool:
         try:
             return 2020 <= int(fieldValue) <= 2030
-        except:
+        except ValueError:
             return False
 
     @staticmethod
     def iyrValid(fieldValue: str) -> bool:
         try:
             return 2010 <= int(fieldValue) <= 2020
-        except:
+        except ValueError:
             return False
 
     @staticmethod
