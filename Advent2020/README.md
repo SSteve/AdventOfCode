@@ -16,7 +16,7 @@
 - Dec 4 - [instructions](http://adventofcode.com/2020/day/4) - [solution](./4.py) (Python)
 - Dec 5 - [instructions](http://adventofcode.com/2020/day/5) - [solution](./5.py) (Python)
 - Dec 6 - [instructions](http://adventofcode.com/2020/day/6) - [solution](./6.py) (Python)
-- Dec 7 - [instructions](http://adventofcode.com/2020/day/7)
+- Dec 7 - [instructions](http://adventofcode.com/2020/day/7) - [solution](./7.py) (Python)
 - Dec 8 - [instructions](http://adventofcode.com/2020/day/8)
 - Dec 9 - [instructions](http://adventofcode.com/2020/day/9)
 - Dec 10 - [instructions](http://adventofcode.com/2020/day/10)
