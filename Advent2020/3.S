@@ -85,9 +85,6 @@ takeNextRun:
 	ldr	x24, =trees		// Initialize pointer into trees data.
 	mov	x19, 0			// Initialize current column.
 	mov	x20, x28		// Initialize number of rows to process.
-	ldr	x0, =endOfSlopes
-	cmp	x27, x0			// Have we processed the last slope?
-	b.ge	finished		// Yes, show the answers.
 	ldp	x22, x23, [x27], 16	// Load number of columns and rows per move.
 	mov	x25, 0			// Number of trees hit in this run.
 
@@ -106,9 +103,9 @@ nextRow:
 
 	// Finished with run
 	mul	x26, x26, x25		// Multiply the number of trees hit into the puzzle answer.
-	b	takeNextRun		// Do the next run.
-
-
+	ldr	x0, =endOfSlopes
+	cmp	x27, x0			// Have we processed the last slope?
+	b.lt	takeNextRun		// Do the next run.
 
 finished:
 	printVal	part1String, 25
