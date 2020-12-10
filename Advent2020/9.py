@@ -62,11 +62,12 @@ def Part1(preambleSize: int, values: List[int]) -> int:
         targetValue = values[index + preambleSize]
         if IsValid(targetValue, index, preambleSize, values) is False:
             return targetValue
+    return -1
 
 
 def Part2(targetValue: int, values: List[int]) -> int:
     for index in range(len(values)):
-        for index2 in range(index, len(values)):
+        for index2 in range(index + 1, len(values)):
             rangeSum = sum(values[index:index2])
             if rangeSum == targetValue:
                 return max(values[index:index2]) + min(values[index:index2])
@@ -97,4 +98,6 @@ if __name__ == "__main__":
     part1 = Part1(25, values)
     assert part1 == 2089807806, f"Part 1 is broken. It's {part1} but it should be 2089807806."
     print(f"Part 1: {part1}")
-    print(f"Part 2: {Part2(part1, values)}")
+    part2 = Part2(part1, values)
+    print(f"Part 2: {part2}")
+    assert part2 == 245848639, f"Part 2 is broken. It's {part2} but it should be 245848639."
