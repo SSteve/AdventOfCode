@@ -42,6 +42,7 @@ TEST2 = """28
 10
 3"""
 
+
 def Part1(valueStrings):
     values = [int(value) for value in valueStrings]
     values.append(0)
@@ -57,8 +58,10 @@ def Part1(valueStrings):
             threes += 1
     return ones * threes
 
-print(Part1(TEST1.splitlines()))
-print(Part1(TEST2.splitlines()))
-with open("10.txt", "r") as infile:
-    values = infile.read().splitlines()
-print(f"Part 1: {Part1(values)}")
+
+if __name__ == "__main__":
+    assert Part1(TEST1.splitlines()) == 35
+    assert Part1(TEST2.splitlines()) == 220
+    with open("10.txt", "r") as infile:
+        values = infile.read().splitlines()
+    print(f"Part 1: {Part1(values)}")
