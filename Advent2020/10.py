@@ -1,3 +1,5 @@
+from typing import List
+
 TEST1 = """16
 10
 15
@@ -43,11 +45,15 @@ TEST2 = """28
 3"""
 
 
-def Part1(valueStrings):
+def MakeValues(valueStrings: List[str]) -> List[int]:
     values = [int(value) for value in valueStrings]
     values.append(0)
     values.append(max(values) + 3)
     values = sorted(values)
+    return values
+    
+    
+def Part1(values: List[int]) -> int:
     ones = 0
     threes = 0
     for i in range(1, len(values)):
@@ -57,11 +63,31 @@ def Part1(valueStrings):
         elif difference == 3:
             threes += 1
     return ones * threes
+    
+    
+def Part2(values: List[int]) -> int:
+    contributions = {1: 1, 2: 1, 3: 2, 4: 4, 5: 7}
+    combinations = 1
+    groupSize = 1
+    previousValue = -3
+    for value in values:
+        if value - previousValue == 3:
+            combinations *= contributions[groupSize]
+            groupSize = 1
+        else:
+            groupSize += 1
+        previousValue = value
+    return combinations
 
 
 if __name__ == "__main__":
-    assert Part1(TEST1.splitlines()) == 35
-    assert Part1(TEST2.splitlines()) == 220
+    test1Values = MakeValues(TEST1.splitlines())
+    assert Part1(test1Values) == 35
+    assert Part2(test1Values) == 8
+    test2Values = MakeValues(TEST2.splitlines())
+    assert Part1(test2Values) == 220
+    assert Part2(test2Values) == 19208
     with open("10.txt", "r") as infile:
-        values = infile.read().splitlines()
+        values = MakeValues(infile.read().splitlines())
     print(f"Part 1: {Part1(values)}")
+    print(f"Part 2: {Part2(values)}")
