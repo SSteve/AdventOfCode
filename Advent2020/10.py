@@ -51,8 +51,8 @@ def MakeValues(valueStrings: List[str]) -> List[int]:
     values.append(max(values) + 3)
     values = sorted(values)
     return values
-    
-    
+
+
 def Part1(values: List[int]) -> int:
     ones = 0
     threes = 0
@@ -63,8 +63,8 @@ def Part1(values: List[int]) -> int:
         elif difference == 3:
             threes += 1
     return ones * threes
-    
-    
+
+
 def Part2(values: List[int]) -> int:
     contributions = {1: 1, 2: 1, 3: 2, 4: 4, 5: 7}
     combinations = 1
