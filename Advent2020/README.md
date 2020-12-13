@@ -21,7 +21,7 @@
 - Dec 9 - [instructions](http://adventofcode.com/2020/day/9) - [solution](./9.py) (Python) - [solution](./Day9/Day9/Program.cs) (C#)
 - Dec 10 - [instructions](http://adventofcode.com/2020/day/10) - [solution](./10.py) (Python)
 - Dec 11 - [instructions](http://adventofcode.com/2020/day/11) - [solution](./11.py) (Python)
-- Dec 12 - [instructions](http://adventofcode.com/2020/day/12)
+- Dec 12 - [instructions](http://adventofcode.com/2020/day/12) - [solution](./12.py) (Python)
 - Dec 13 - [instructions](http://adventofcode.com/2020/day/13)
 - Dec 14 - [instructions](http://adventofcode.com/2020/day/14)
 - Dec 15 - [instructions](http://adventofcode.com/2020/day/15)
