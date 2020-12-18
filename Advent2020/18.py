@@ -1,8 +1,7 @@
-import re
 from collections import deque
-from typing import Deque, Dict
 
-def Eval(input: Deque[str]) -> int:
+
+def Eval(input: deque[str]) -> int:
     stack = []
     for token in input:
         if token in '0123456789':
@@ -17,7 +16,8 @@ def Eval(input: Deque[str]) -> int:
         raise ValueError(f"Error evaluating. Stack: {stack}")
     return stack.pop()
 
-def Parse(input: str, precedence: Dict[str, int]) -> int:
+
+def Parse(input: str, precedence: dict[str, int]) -> int:
     output = deque()
     operators = []
     for char in input:
@@ -43,14 +43,17 @@ def Parse(input: str, precedence: Dict[str, int]) -> int:
     while len(operators):
         output.append(operators.pop())
     return Eval(output)
-    
+
+
 def Part1(input: str) -> int:
     precedence = {'+': 1, '*': 1}
     return Parse(input, precedence)
 
+
 def Part2(input: str) -> int:
     precedence = {'+': 2, '*': 1}
     return Parse(input, precedence)
+
 
 assert Part1("2 * 3 + (4 * 5)") == 26
 assert Part1("5 + (8 * 3 + 9 + 3 * 4 * 3)") == 437
