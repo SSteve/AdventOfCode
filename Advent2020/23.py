@@ -1,6 +1,5 @@
 class Node:
-    def __init__(self, prev: int, next: int):
-        self.prev = prev
+    def __init__(self, next: int):
         self.next = next
         self.up = False
         
@@ -9,21 +8,20 @@ def MakeNodes(data: str):
     nodes = []
     for value in range(len(values)):
         index = values.index(value)
-        prev = values[(index - 1) % len(values)]
         next = values[(index + 1) % len(values)]
-        nodes.append(Node(prev, next))
+        nodes.append(Node(next))
     return nodes, values[0]
     
 def MakeNodes2(data: str):
     nodes, current = MakeNodes(data)
-    nodes[nodes[current].prev].next = len(nodes)
-    firstNewNode = len(nodes)
+    next = nodes[current].next
+    for _ in range(len(nodes) - 2):
+        next = nodes[next].next
+    nodes[next].next = len(nodes)
     for value in range(len(nodes), 1_000_000):
-        nodes.append(Node(value - 1, value + 1))
+        nodes.append(Node(value + 1))
     
     nodes[999_999].next = current
-    nodes[firstNewNode].prev = nodes[current].prev
-    nodes[current].prev = 999_999
     return nodes, current
     
 def Turn(current: int, nodes):
@@ -31,16 +29,13 @@ def Turn(current: int, nodes):
     firstUp = up
     for _ in range(3):
         nodes[up].up = True
+        lastUp = up
         up = nodes[up].next
-    lastUp = nodes[up].prev
     destination = (current - 1) % len(nodes)
     while nodes[destination].up:
         destination = (destination - 1) % len(nodes)
     nodes[current].next = nodes[lastUp].next
-    nodes[nodes[lastUp].next].prev = current
     nodes[lastUp].next = nodes[destination].next
-    nodes[firstUp].prev = destination
-    nodes[nodes[destination].next].prev = lastUp
     nodes[destination].next = firstUp
     up = firstUp
     for _ in range(3):
@@ -55,11 +50,7 @@ def PrintNodes(current: int, nodes):
         print(f" {index + 1}", end='')
         index = nodes[index].next
     print()
-    for _ in range(min(len(nodes) - 1, 20)):
-        print(f" {index + 1}", end='')
-        index = nodes[index].prev
-    print()
-        
+            
 def Answer(nodes):
     answer = ''
     node = nodes[0].next
@@ -98,3 +89,4 @@ nodes, current = MakeNodes2(DATA)
 for _ in range(10_000_000):
     current = Turn(current, nodes)
 print(Answer2(nodes))
+assert Answer2(nodes == 2029056128)
