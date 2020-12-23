@@ -22,6 +22,7 @@ def MakeDecks(lines: list[str]) -> tuple[deque[int], deque[int]]:
         if len(line) == 0:
             continue
         if line.find("Player") > -1:
+            # When we get to "Player 2:", switch current decks and skip this line.
             currentDeck = deck2
             continue
         currentDeck.append(int(line))
@@ -29,6 +30,7 @@ def MakeDecks(lines: list[str]) -> tuple[deque[int], deque[int]]:
 
 
 def CalculateDeckScore(deck: list[int]) -> int:
+    # Score is bottom card * 1 + next card * 2 + next card * 3, etc.
     score = 0
     for i in range(len(deck)):
         score += deck[-1 - i] * (i + 1)
@@ -36,10 +38,11 @@ def CalculateDeckScore(deck: list[int]) -> int:
 
 
 def HashDeck(deck: list[int]) -> bytes:
+    # Calculate a hash of the deck for comparing to previous decks.
     deckAsStrings = [str(val) for val in deck]
     deckString = ''.join(deckAsStrings)
-    hashString = sha384(deckString.encode()).digest()
-    return hashString
+    hashValue = sha384(deckString.encode()).digest()
+    return hashValue
 
 
 def Part1(deck1: deque[int], deck2: deque[int]) -> int:
@@ -65,23 +68,22 @@ def RecursiveCombat(deck1: deque[int], deck2: deque[int]) -> int:
         card1 = deck1.popleft()
         card2 = deck2.popleft()
         if len(deck1) >= card1 and len(deck2) >= card2:
-            # Play a game of Recursive Combat
+            # Play a game of Recursive Combat.
+            # Each deck has a number of cards equal to the value of the card drawn.
             slice1 = islice(deck1, 0, card1)
             slice2 = islice(deck2, 0, card2)
             winner = RecursiveCombat(deque(slice1), deque(slice2))
-            if winner == 1:
-                deck1.append(card1)
-                deck1.append(card2)
-            else:
-                deck2.append(card2)
-                deck2.append(card1)
         else:
             if card1 > card2:
-                deck1.append(card1)
-                deck1.append(card2)
+                winner = 1
             else:
-                deck2.append(card2)
-                deck2.append(card1)
+                winner = 2
+        if winner == 1:
+            deck1.append(card1)
+            deck1.append(card2)
+        else:
+            deck2.append(card2)
+            deck2.append(card1)
     if len(deck1):
         return 1
     return 2
@@ -135,3 +137,4 @@ if __name__ == "__main__":
     print(f"Part 1: {part1}")
     part2 = Part2(deck1, deck2)
     print(f"Part 2: {part2}")
+    assert part2 == 30498
