@@ -33,6 +33,5 @@
 - Dec 21 - [instructions](http://adventofcode.com/2020/day/21)
 - Dec 22 - [instructions](http://adventofcode.com/2020/day/22) - [solution](./22.py) (Python)
 - Dec 23 - [instructions](http://adventofcode.com/2020/day/23) - [solution](./23.py) (Python)
-- Dec 24 - [instructions](http://adventofcode.com/2020/day/24)
+- Dec 24 - [instructions](http://adventofcode.com/2020/day/24) - [solution](./24.py) (Python)
 - Dec 25 - [instructions](http://adventofcode.com/2020/day/25)
-
