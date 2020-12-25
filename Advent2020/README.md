@@ -30,7 +30,7 @@
 - Dec 18 - [instructions](http://adventofcode.com/2020/day/18) - [solution](./18.py) (Python)
 - Dec 19 - [instructions](http://adventofcode.com/2020/day/19)
 - Dec 20 - [instructions](http://adventofcode.com/2020/day/20)
-- Dec 21 - [instructions](http://adventofcode.com/2020/day/21)
+- Dec 21 - [instructions](http://adventofcode.com/2020/day/21) - [solution](./21.py) (Python)
 - Dec 22 - [instructions](http://adventofcode.com/2020/day/22) - [solution](./22.py) (Python)
 - Dec 23 - [instructions](http://adventofcode.com/2020/day/23) - [solution](./23.py) (Python)
 - Dec 24 - [instructions](http://adventofcode.com/2020/day/24) - [solution](./24.py) (Python)
