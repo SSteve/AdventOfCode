@@ -25,6 +25,9 @@ def Part1(foods: list[Food]) -> tuple[int, dict[str, set[str]]]:
     for food in foods:
         allAllergens.update(food.allergens)
         allIngredients.update(food.ingredients)
+
+    # Build a map of each allergen and all of the possible
+    # ingredients that might contain it.
     allergenIngredients: dict[str, set[str]] = {}
     for allergen in allAllergens:
         for food in foods:
@@ -33,13 +36,19 @@ def Part1(foods: list[Food]) -> tuple[int, dict[str, set[str]]]:
                     allergenIngredients[allergen].intersection_update(food.ingredients)
                 else:
                     allergenIngredients[allergen] = set(food.ingredients)
+
+    # Find the ingredients that aren't contained in any of the
+    # lists of allergen-containing ingredients.
     safeIngredients = set()
     for ingredient in allIngredients:
         if not any(ingredient in allergenIngredients[allergen] for allergen in allergenIngredients):
             safeIngredients.add(ingredient)
+
+    # Count the occurances of safe ingredients for part 1.
     safeIngredientCount = 0
     for safeIngredient in safeIngredients:
         safeIngredientCount += sum(safeIngredient in food.ingredients for food in foods)
+
     return safeIngredientCount, allergenIngredients
 
 
@@ -50,13 +59,20 @@ def Part2(allergenIngredients: dict[str, set[str]]) -> str:
         for allergen in allergenIngredients:
             if len(allergenIngredients[allergen]) == 1:
                 break
+        # This allergen is in only one possible ingredient so we've
+        # found a match.
         ingredient = allergenIngredients[allergen].pop()
         translations[allergen] = ingredient
+        # Remove this ingredients from all the other possibilities.
         for allergen in allergenIngredients:
             allergenIngredients[allergen].discard(ingredient)
+
+    # Build the list of dangerous ingredients sorted by their allergen
+    # for Part 2
     dangerousIngredients = ''
     for allergen in sorted(translations):
         dangerousIngredients += translations[allergen] + ","
+
     return dangerousIngredients.removesuffix(",")
 
 
