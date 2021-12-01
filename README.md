@@ -9,6 +9,7 @@ Jump to:
 - [2018](https://github.com/SSteve/AdventOfCode/tree/master/Advent2018)
 - [2019](https://github.com/SSteve/AdventOfCode/tree/master/Advent2019)
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
+- [2021](https://github.com/SSteve/AdventOfCode/tree/master/Advent2021)
 
 I discovered Advent of Code in January 2019. I think it was through [PyCoder’s Weekly](https://pycoders.com).
 
