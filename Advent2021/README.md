@@ -11,4 +11,4 @@
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
 
 ### The Puzzles
-- Dec 1 - [instructions](http://adventofcode.com/2021/day/1)
+- Dec 1 - [instructions](http://adventofcode.com/2021/day/1) - [solution](./1.py) (Python)
