@@ -1,8 +1,8 @@
 import os
-import sys
+from datetime import date
 from sys import argv
 
-THIS_YEAR = 2020
+THIS_YEAR = 2021
 
 
 def create_readme(year: int):
@@ -24,7 +24,14 @@ def create_readme(year: int):
 
     print("### The Puzzles")
 
-    for day in range(1, 26):
+    end_of_advent = date(THIS_YEAR, 12, 25)
+    today = date.today()
+    if today > end_of_advent:
+        last_day = 25
+    else:
+        last_day = today.day
+
+    for day in range(1, last_day + 1):
         day_string = f"- Dec {day} - [instructions](http://adventofcode.com/{year}/day/{day})"
         if os.path.isfile(f"Advent{year}/{day}.py"):
             day_string += f" - [solution](./{day}.py) (Python)"
