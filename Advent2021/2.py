@@ -22,6 +22,7 @@ def TravelCourse1(lines: list[str]) -> Tuple[int, int]:
 
     return position, depth
 
+
 def TravelCourse2(lines: list[str]) -> Tuple[int, int]:
     position = 0
     depth = 0
