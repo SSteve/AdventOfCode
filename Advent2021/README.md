@@ -12,3 +12,4 @@
 
 ### The Puzzles
 - Dec 1 - [instructions](http://adventofcode.com/2021/day/1) - [solution](./1.py) (Python)
+- Dec 2 - [instructions](http://adventofcode.com/2021/day/2) - [solution](./2.py) (Python)

@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import datetime, timedelta
 from sys import argv
 
 THIS_YEAR = 2021
@@ -24,8 +24,9 @@ def create_readme(year: int):
 
     print("### The Puzzles")
 
-    end_of_advent = date(THIS_YEAR, 12, 25)
-    today = date.today()
+    end_of_advent = datetime(THIS_YEAR, 12, 25)
+    # Convert local time to EST.
+    today = datetime.now() + timedelta(hours=3)
     if today > end_of_advent:
         last_day = 25
     else:
