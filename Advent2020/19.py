@@ -70,7 +70,6 @@ print(f"Part 1: {valid1}")
 print(f"Part 2: {valid2}")
 
 
-
 '''
 This was my original solution for Day 1. It's very slow.
 

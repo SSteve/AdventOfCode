@@ -29,7 +29,7 @@ def MakeDecks(lines: list[str]) -> tuple[deque[int], deque[int]]:
     return (deck1, deck2)
 
 
-def CalculateDeckScore(deck: list[int]) -> int:
+def CalculateDeckScore(deck: deque[int]) -> int:
     # Score is bottom card * 1 + next card * 2 + next card * 3, etc.
     score = 0
     for i in range(len(deck)):
@@ -37,7 +37,7 @@ def CalculateDeckScore(deck: list[int]) -> int:
     return score
 
 
-def HashDeck(deck: list[int]) -> bytes:
+def HashDeck(deck: deque[int]) -> bytes:
     # Calculate a hash of the deck for comparing to previous decks.
     deckAsStrings = [str(val) for val in deck]
     deckString = ''.join(deckAsStrings)
