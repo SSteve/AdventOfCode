@@ -16,4 +16,4 @@
 - Dec 3 - [instructions](http://adventofcode.com/2021/day/3) - [solution](./3.py) (Python)
 - Dec 4 - [instructions](http://adventofcode.com/2021/day/4)
 - Dec 5 - [instructions](http://adventofcode.com/2021/day/5)
-- Dec 6 - [instructions](http://adventofcode.com/2021/day/6)
+- Dec 6 - [instructions](http://adventofcode.com/2021/day/6) - [solution](./6.py) (Python)
