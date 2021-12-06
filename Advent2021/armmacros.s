@@ -82,7 +82,7 @@
 	cmp	X0, #-1		// Have we started building the return value?
 	csel	X0, XZR, X0, eq	// If not, set X0 to 0, otherwise don't change X0.
 	sub	W3, W3, #'0'	// Convert ASCII to binary.
-	umaddl	X0, W0, W2, X3	// Multiply return value by 10 and add new digit.
+	madd	X0, X0, X2, X3	// Multiply return value by 10 and add new digit.
 	b	1b		// Fetch next character.
 3:
 .endm
