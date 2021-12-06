@@ -1,4 +1,5 @@
 // Advent of Code 2021 Day 1
+// Included files are at https://github.com/SSteve/AdventOfCode/tree/master/Advent2021
 
 // Registers:
 
@@ -52,11 +53,17 @@ nextValue:
 	add	X27, X27, #1		// Increment number of values read.
 	cmp	X0, #-1			// Did we reach the end of the input data?
 	b.eq	done
+
+	// For Part 1, we test to see if this value is larger than the previous value.
 	cmp	X0, X21			// Is this greater than the previous value?
 	cinc	X25, X25, hi		// If yes, increment part 1 count.
 
-	cmp	X27, #4
-	b.lo	copyPreviousValues
+	cmp	X27, #4			// Have we read enough values to begin part 2?
+	b.lo	copyPreviousValues	// If not, skip part 2 calculation.
+
+	// For Part 2, we test to see if sum(z-3, z-2, z-1) > sum(z-2, z-1, z). We can simplify by
+	// removing z-2 & z-1 from both sides of the inequality and simply test this value against
+	// the third previous value.
 	cmp	X0, X23			// Is this greater than the third previous value?
 	cinc	X26, X26, hi		// If yes, increment part 2 count.
 
