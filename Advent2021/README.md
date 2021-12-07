@@ -15,5 +15,5 @@
 - Dec 2 - [instructions](http://adventofcode.com/2021/day/2) - [solution](./2.py) (Python) - [solution](./2.S) (ARM64 asm)
 - Dec 3 - [instructions](http://adventofcode.com/2021/day/3) - [solution](./3.py) (Python)
 - Dec 4 - [instructions](http://adventofcode.com/2021/day/4) - [solution](./4.py) (Python)
-- Dec 5 - [instructions](http://adventofcode.com/2021/day/5)
+- Dec 5 - [instructions](http://adventofcode.com/2021/day/5) - [solution](./5.py) (Python)
 - Dec 6 - [instructions](http://adventofcode.com/2021/day/6) - [solution](./6.py) (Python)
