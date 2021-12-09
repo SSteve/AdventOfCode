@@ -14,7 +14,7 @@ def FuelPart1(vals: list[int]) -> int:
 
 @lru_cache(5000)
 def Cost(distance: int) -> int:
-    return sum(i for i in range(distance + 1))
+    return distance * (distance + 1) // 2
 
 
 # I'm pretty sure there's a better way to do this. There's probably a way to mathematically
