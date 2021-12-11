@@ -61,7 +61,8 @@ class Passport:
             lastMatchPos += match.span()[1] + 1
 
     def hasRequiredFields(self, requiredFields: List[str]):
-        fieldInFields = [field in self.fields.keys() for field in requiredFields]
+        fieldInFields = [field in self.fields.keys()
+                         for field in requiredFields]
         return all(fieldInFields)
 
     @staticmethod
@@ -131,7 +132,7 @@ class Passport:
             return Passport.pidValid(fieldValue)
         if field == 'cid':
             return True
-        raise("Unknown field")
+        raise ValueError("Unknown field")
 
     def isValid(self, requiredFields: List[str]) -> bool:
         return self.hasRequiredFields(requiredFields) and all(
@@ -170,8 +171,10 @@ if __name__ == "__main__":
 
     with open("4.txt", "r") as infile:
         passports = Passport.passportsFromText(infile.read().splitlines())
-    validPassportCount = sum(passport.hasRequiredFields(requiredFields) for passport in passports)
+    validPassportCount = sum(passport.hasRequiredFields(
+        requiredFields) for passport in passports)
     print(validPassportCount)
 
-    validPassports = [passport.isValid(requiredFields) for passport in passports]
+    validPassports = [passport.isValid(requiredFields)
+                      for passport in passports]
     print(sum(validPassports))
