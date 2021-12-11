@@ -11,7 +11,7 @@
 .equ  O_CREAT,  0100
 .equ  O_EXCL,   0200
 .equ  S_RDWR,   0666
-.equ  AT_FDCWD, -100 
+.equ  AT_FDCWD, -100
 
 .macro	openFile	fileName, flags
 	mov	x0, #AT_FDCWD
@@ -22,9 +22,19 @@
 	svc	0
 .endm
 
+// Read file into statically allocated memory.
 .macro	readFile	fd, buffer, length
 	mov	x0, \fd		// file descriptor
 	ldr	x1, =\buffer
+	mov	x2, #\length
+	mov	x8, #__NR_read
+	svc	0
+.endm
+
+// Read file into dynamically memory.
+.macro readFileDynamic	fd, reg, length
+	mov	x0, \fd
+	mov	x1, \reg
 	mov	x2, #\length
 	mov	x8, #__NR_read
 	svc	0

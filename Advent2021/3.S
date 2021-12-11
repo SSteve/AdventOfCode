@@ -1,4 +1,4 @@
-// Advent of Code 2021 Day 2
+// Advent of Code 2021 Day 3
 // Included files are at https://github.com/SSteve/AdventOfCode/tree/master/Advent2021
 
 #include <asm/unistd.h>

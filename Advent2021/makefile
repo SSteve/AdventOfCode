@@ -1,4 +1,4 @@
-all: 1.app 2.app 3.app # 4.app
+all: 1.app 2.app 3.app 4.app
 
 ifdef DEBUG
 DEBUGFLGS = -g
@@ -18,5 +18,5 @@ endif
 3.app: 3.S armmacros.s fileio.S armutilities.s
 	gcc $(DEBUGFLGS) -o 3.app 3.S
 
-#4.app: 4.S armmacros.s fileio.S
-#	gcc $(DEBUGFLGS) -o 4.app 4.S
+4.app: 4.S armmacros.s fileio.S
+	gcc $(DEBUGFLGS) -o 4.app 4.S
