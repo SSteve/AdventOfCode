@@ -1,6 +1,6 @@
 # Assembler products for Advent of Code
 *.o
-.lst
+*.lst
 # I'm giving the executables the .app extension so it's easy to add them to .gitignore
 *.app
 
