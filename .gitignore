@@ -4,6 +4,12 @@
 # I'm giving the executables the .app extension so it's easy to add them to .gitignore
 *.app
 
+# Visual Studio Code syncs settings so don't save them in the repository.
+.vscode/
+
+# Local History for Visual Studio Code
+.history/
+
 *.swp
 .gdb_history
 
