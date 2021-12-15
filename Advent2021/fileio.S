@@ -1,7 +1,7 @@
 // Various macros to perform file I/O
 //
 // The fd parameter needs to be a register.
-// Uses X0, X1, X8.
+// Uses X0, X1, X2, X3, X8.
 // Return code is in X0.
 
 #include <asm/unistd.h>

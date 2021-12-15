@@ -1,0 +1,66 @@
+digraph nodes {
+    node [shape=plaintext]
+    
+    x10 [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD PORT="top" COLSPAN="2">x,y</TD></TR>
+  <TR><TD COLSPAN="2">15</TD></TR>
+  <TR><TD COLSPAN="2"><FONT POINT-SIZE="10.0">h=3</FONT></TD></TR>
+  <TR><TD PORT="left"></TD><TD PORT="right"></TD></TR>
+</TABLE>>];
+
+    x11 [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD PORT="top" COLSPAN="2">x,y</TD></TR>
+  <TR><TD COLSPAN="2">15</TD></TR>
+  <TR><TD COLSPAN="2"><FONT POINT-SIZE="10.0">h=3</FONT></TD></TR>
+  <TR><TD PORT="left"></TD><TD PORT="right"></TD></TR>
+</TABLE>>];
+
+    x12 [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD PORT="top" COLSPAN="2">x,y</TD></TR>
+  <TR><TD COLSPAN="2">15</TD></TR>
+  <TR><TD COLSPAN="2"><FONT POINT-SIZE="10.0">h=3</FONT></TD></TR>
+  <TR><TD PORT="left"></TD><TD PORT="right"></TD></TR>
+</TABLE>>];
+
+    x13 [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD PORT="top" COLSPAN="2">x,y</TD></TR>
+  <TR><TD COLSPAN="2">15</TD></TR>
+  <TR><TD COLSPAN="2"><FONT POINT-SIZE="10.0">h=3</FONT></TD></TR>
+  <TR><TD PORT="left"></TD><TD PORT="right"></TD></TR>
+</TABLE>>];
+
+    x14 [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD PORT="top" COLSPAN="2">x,y</TD></TR>
+  <TR><TD COLSPAN="2">15</TD></TR>
+  <TR><TD COLSPAN="2"><FONT POINT-SIZE="10.0">h=3</FONT></TD></TR>
+  <TR><TD PORT="left"></TD><TD PORT="right"></TD></TR>
+</TABLE>>];
+
+    x15 [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD PORT="top" COLSPAN="2">x,y</TD></TR>
+  <TR><TD COLSPAN="2">15</TD></TR>
+  <TR><TD COLSPAN="2"><FONT POINT-SIZE="10.0">h=3</FONT></TD></TR>
+  <TR><TD PORT="left"></TD><TD PORT="right"></TD></TR>
+</TABLE>>];
+
+    x16 [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD PORT="top" COLSPAN="2">x,y</TD></TR>
+  <TR><TD COLSPAN="2">15</TD></TR>
+  <TR><TD COLSPAN="2"><FONT POINT-SIZE="10.0">h=3</FONT></TD></TR>
+  <TR><TD PORT="left"></TD><TD PORT="right"></TD></TR>
+</TABLE>>];
+
+    x10:left -> x11:top;
+    x10:right -> x12:top;
+    x11:left -> x13:top;
+    x11:right -> x14:top;
+    x12:left -> x15:top;
+    x12:right -> x16:top;
+}
