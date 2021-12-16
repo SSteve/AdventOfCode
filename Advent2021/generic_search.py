@@ -2,7 +2,7 @@
 # (https://www.manning.com/books/classic-computer-science-problems-in-python)
 # by David Kopec
 from collections import deque
-from typing import TypeVar, Generic, Callable, Optional
+from typing import TypeVar, Generic, Callable, Optional, Iterable
 from heapq import heappush, heappop
 
 T = TypeVar('T')
@@ -58,7 +58,7 @@ class Node(Generic[T]):
         return f"Node(state={self.state}, cost={self.cost}, heuristic={self.heuristic}"
 
 
-def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], list[T]]) -> Optional[Node[T]]:
+def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]]) -> Optional[Node[T]]:
     # frontier is where we've yet to go
     frontier: Stack[Node[T]] = Stack()
     frontier.push(Node(initial, None))
@@ -141,7 +141,7 @@ class PriorityQueue(Generic[T]):
         return repr(self._container)
 
 
-def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], list[T]],
+def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]],
           heuristic: Callable[[T], float], cost: Callable[[T, T], float]) -> Optional[Node[T]]:
     # frontier is where we've yet to go
     frontier: PriorityQueue[Node[T]] = PriorityQueue()
