@@ -68,7 +68,7 @@ def FindTarget(input: str) -> Target:
 
 def Day17(input: str) -> Tuple[int, int]:
     target = FindTarget(input)
-    startVelocities = set()
+
     # Calculate the minimum initial x velocity (see notes above).
     # This is also the largest number of steps it will take to
     # reach the left edge of the target. Any number of steps more than
@@ -88,11 +88,13 @@ def Day17(input: str) -> Tuple[int, int]:
             y = int(step * V0y - ((step**2 - step) / 2))
             if target.minY <= y <= target.maxY:
                 maxV0y = V0y
-                maxY = int((V0y**2 + V0y) / 2)
+
+    maxY = int((maxV0y**2 + maxV0y) / 2)
 
     # We've found the highest viable initial y velocity. Now find all
     # combinations of initial velocities that result in the probe
     # being within the target at the end of a step.
+    startVelocities: set[Point] = set()
     minV0y = target.minY
     for V0y in range(minV0y, maxV0y + 1):
         y = 0
