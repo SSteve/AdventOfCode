@@ -106,7 +106,8 @@ class Pair(Node):
     def Split(self) -> bool:
         """
         Perform a SplitValue on the first value in the tree that requires
-        splitting. Once a value in the tree is split, stop.
+        splitting. Once a value in the tree is split, stop. Return True
+        if a split was performed.
         """
         if type(self.left) is Value:
             newNode = self.left.SplitValue()
@@ -214,6 +215,10 @@ class Pair(Node):
         return None
 
     def Explode(self) -> bool:
+        """
+        Explode the first Pair that is nested four levels deep. Return True if
+        a pair was exploded.
+        """
         pairToExplode = self.FindPairToExplode()
         if type(pairToExplode) is Pair:
             pairToExplode.ExplodePair()
@@ -221,7 +226,7 @@ class Pair(Node):
         return False
 
     def DotRepresentation(self) -> Iterable[str]:
-        yield f'    x{id(self)} [label="d={self.Depth()}", shape=circle]'
+        yield f'    x{id(self)} [label="depth={self.Depth()}", shape=box]'
         if self.left is not None:
             for line in self.left.DotRepresentation():
                 yield line
@@ -318,7 +323,7 @@ def DoHomework(lines: list[str]) -> int:
     for line in lines[1:]:
         b = Pair.CreateTree(line)
         a = a + b
-    print(a)
+    a.WriteToDotFile("18.dot")
     return a.Magnitude()
 
 
