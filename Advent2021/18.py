@@ -226,7 +226,7 @@ class Pair(Node):
         return False
 
     def DotRepresentation(self) -> Iterable[str]:
-        yield f'    x{id(self)} [label="depth={self.Depth()}", shape=box]'
+        yield f'    x{id(self)} [label="depth={self.Depth()}", shape=box, fontsize="7", margin="0.05", width="0", height="0"]'
         if self.left is not None:
             for line in self.left.DotRepresentation():
                 yield line
