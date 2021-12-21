@@ -333,7 +333,7 @@ def Determinant(m: list[list[int]]) -> int:
     g = m[2][0]
     h = m[2][1]
     i = m[2][2]
-    return a * e * i + b * f * g + c + d + h - c * e * g - b * d * i - a * f * h
+    return a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h
 
 
 if __name__ == "__main__":
