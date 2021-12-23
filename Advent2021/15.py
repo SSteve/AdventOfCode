@@ -51,10 +51,10 @@ class ChitonMap:
         if point.y < self.caveSize * 5 - 1:
             yield Point(point.x, point.y + 1)
 
-    def CostToLocation(self, nextPoint: Point, thisPoint: Point) -> float:
+    def CostToLocation(self, thisPoint: Point, nextPoint: Point) -> float:
         return self.locations[nextPoint]
 
-    def ExtendedCostToLocation(self, nextPoint: Point, thisPoint: Point) -> float:
+    def ExtendedCostToLocation(self, thisPoint: Point, nextPoint: Point) -> float:
         xIncrement = nextPoint.x // self.caveSize
         yIncrement = nextPoint.y // self.caveSize
         normalizedPoint = Point(nextPoint.x %
@@ -78,17 +78,22 @@ class ChitonMap:
 
     def FindExtendedPath(self) -> Optional[Node[Point]]:
         solution = astar(Point(0, 0), self.IsExtendedBottomRight, self.ExtendedSuccessors,
-                         ChitonMap.ManhattanDistanceToGoal(Point(self.caveSize * 5 - 1, self.caveSize * 5 - 1)), self.ExtendedCostToLocation)
+                         ChitonMap.ManhattanDistanceToGoal(
+                             Point(self.caveSize * 5 - 1, self.caveSize * 5 - 1)),
+                         self.ExtendedCostToLocation)
         return solution
 
 
 if __name__ == "__main__":
     chitonMap = ChitonMap(TEST.splitlines())
+
+    """
     for y in range(chitonMap.caveSize * 5):
         for x in range(chitonMap.caveSize * 5):
             print(chitonMap.ExtendedCostToLocation(
                 Point(x, y), Point(0, 0)), end="")
         print()
+    """
     solution = chitonMap.FindPath()
     assert solution and solution.cost == 40
     solution = chitonMap.FindExtendedPath()

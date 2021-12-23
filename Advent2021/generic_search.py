@@ -1,6 +1,7 @@
 # Adapted from Classic Computer Science Problems in Python
 # (https://www.manning.com/books/classic-computer-science-problems-in-python)
 # by David Kopec
+from __future__ import annotations
 from collections import deque
 from typing import TypeVar, Generic, Callable, Optional, Iterable
 from heapq import heappush, heappop
@@ -45,13 +46,13 @@ class Queue(Generic[T]):
 
 
 class Node(Generic[T]):
-    def __init__(self, state: T, parent: Optional['Node'], cost: float = 0.0, heuristic: float = 0.0) -> None:
+    def __init__(self, state: T, parent: Optional[Node], cost: float = 0.0, heuristic: float = 0.0) -> None:
         self.state: T = state
         self.parent: Optional[Node] = parent
         self.cost: float = cost
         self.heuristic: float = heuristic
 
-    def __lt__(self, other: 'Node') -> bool:
+    def __lt__(self, other: Node) -> bool:
         return (self.cost + self.heuristic) < (other.cost + other.heuristic)
 
     def __repr__(self):
@@ -89,15 +90,6 @@ def nodeToPath(node: Node[T]) -> list[T]:
         path.append(node.state)
     path.reverse()
     return path
-
-
-def costList(node: Node) -> list[float]:
-    costs: list[float] = [node.cost]
-    while node.parent is not None:
-        node = node.parent
-        costs.append(node.cost)
-    costs.reverse()
-    return costs
 
 
 def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], list[T]]) -> Optional[Node[T]]:
@@ -143,6 +135,42 @@ class PriorityQueue(Generic[T]):
 
 def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]],
           heuristic: Callable[[T], float], cost: Callable[[T, T], float]) -> Optional[Node[T]]:
+    """
+    Perform an A* search.
+
+    The A* search finds the optimal cost path from an initial state to
+    a final goal state. It uses callbacks to identify the final goal,
+    successors to the current state, the heuristic (described below),
+    and the cost between one state and the next.
+
+    This implementation is adapted from "Classic Computer Science
+    Problems in Python" by David Kopec.
+
+    Parameters
+    ----------
+    initial : T
+        The initial state.
+    goal_test : Callable[[T], bool]
+        A function that takes a state as input and returns True if
+        the goal has been reached.
+    successors : Callable[[T], Iterable[T]]
+        A function that takes a state as input and returns 0 or
+        more states that can come after that state.
+    hueristic : Callable[[T], float]
+        A function that takes a state as input and returns a best-guess
+        cost from there to the goal. It is allowed to be lower than the
+        real cost but must never be higher.
+    cost : Callable[[T, T], float]
+        A function that takes two states as input and returns the
+        actual cost to go from the first to the second.
+
+    Returns
+    -------
+    Returns a Node object containing the final state, the total cost to
+    get there, the state's heuristic value, and a pointer to the
+    previous Node in the solution. The entire solution path is obtained
+    by calling `nodeToPath`.
+    """
     # frontier is where we've yet to go
     frontier: PriorityQueue[Node[T]] = PriorityQueue()
     frontier.push(Node(initial, None, 0.0, heuristic(initial)))
@@ -158,7 +186,7 @@ def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], 
             return current_node
         # check where we can go next and haven't explored
         for child in successors(current_state):
-            new_cost: float = current_node.cost + cost(child, current_state)
+            new_cost: float = current_node.cost + cost(current_state, child)
 
             if child not in explored or explored[child] > new_cost:
                 explored[child] = new_cost
