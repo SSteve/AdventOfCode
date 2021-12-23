@@ -63,22 +63,22 @@ class ChitonMap:
         cost = (cost - 1) % 9 + 1
         return cost
 
-    @classmethod
-    def ManhattanDistance(cls, point: Point) -> Callable[[Point], float]:
-        def distance(point2: Point) -> float:
-            deltaX = abs(point2.x - point.x)
-            deltaY = abs(point2.y - point.y)
+    @staticmethod
+    def ManhattanDistanceToGoal(goal: Point) -> Callable[[Point], float]:
+        def distance(point: Point) -> float:
+            deltaX = abs(goal.x - point.x)
+            deltaY = abs(goal.y - point.y)
             return deltaX + deltaY
         return distance
 
     def FindPath(self) -> Optional[Node[Point]]:
         solution = astar(Point(0, 0), self.IsBottomRight, self.Successors,
-                         ChitonMap.ManhattanDistance(Point(self.caveSize - 1, self.caveSize - 1)), self.CostToLocation)
+                         ChitonMap.ManhattanDistanceToGoal(Point(self.caveSize - 1, self.caveSize - 1)), self.CostToLocation)
         return solution
 
     def FindExtendedPath(self) -> Optional[Node[Point]]:
         solution = astar(Point(0, 0), self.IsExtendedBottomRight, self.ExtendedSuccessors,
-                         ChitonMap.ManhattanDistance(Point(self.caveSize * 5 - 1, self.caveSize * 5 - 1)), self.ExtendedCostToLocation)
+                         ChitonMap.ManhattanDistanceToGoal(Point(self.caveSize * 5 - 1, self.caveSize * 5 - 1)), self.ExtendedCostToLocation)
         return solution
 
 
