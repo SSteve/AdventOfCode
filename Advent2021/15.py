@@ -73,12 +73,12 @@ class ChitonMap:
 
     def FindPath(self) -> Optional[Node[Point]]:
         solution = astar(Point(0, 0), self.IsBottomRight, self.Successors,
-                         ChitonMap.ManhattanDistance(Point(0, 0)), self.CostToLocation)
+                         ChitonMap.ManhattanDistance(Point(self.caveSize - 1, self.caveSize - 1)), self.CostToLocation)
         return solution
 
     def FindExtendedPath(self) -> Optional[Node[Point]]:
         solution = astar(Point(0, 0), self.IsExtendedBottomRight, self.ExtendedSuccessors,
-                         ChitonMap.ManhattanDistance(Point(0, 0)), self.ExtendedCostToLocation)
+                         ChitonMap.ManhattanDistance(Point(self.caveSize * 5 - 1, self.caveSize * 5 - 1)), self.ExtendedCostToLocation)
         return solution
 
 
