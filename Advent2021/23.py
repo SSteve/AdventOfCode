@@ -1,8 +1,9 @@
 
 from __future__ import annotations
-from collections import defaultdict
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Iterable, Iterator, Literal, Optional, Tuple
+
+from generic_search import astar, nodeToPath
 
 TEST = """#############
 #...........#
@@ -26,7 +27,28 @@ def ManhattanDistance(p1: Point, p2: Point) -> int:
     return abs(p1.x - p2.x) + abs(p1.y - p2.y)
 
 
-AmphipodState = dict[str, list[Point]]
+class AmphipodState(object):
+    def __init__(self):
+        self._keys = ('A', 'B', 'C', 'D')
+        self._data: dict[str, list[Point]] = {}
+        for key in self._keys:
+            self._data[key] = []
+
+    def keys(self) -> Iterable[str]:
+        return self._keys
+
+    def __getitem__(self, __k: str) -> list[Point]:
+        return self._data[__k]
+
+    def __setitem__(self, __k: str, value: list[Point]) -> None:
+        self._data[__k] = value
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._keys)
+
 
 homeX: dict[str, int] = {'A': 2, 'B': 4, 'C': 6, 'D': 8}
 
@@ -63,7 +85,9 @@ def AllPositions(state: AmphipodState) -> set[Point]:
 
 
 def AmphipodStateFromText(lines: list[str]) -> AmphipodState:
-    state: AmphipodState = defaultdict(list[Point])
+    state: AmphipodState = {}
+    for c in ['A', 'B', 'C', 'D']:
+        state[c] = []
     for x in range(3, 11, 2):
         for y in range(2, 4):
             # Our origin is the first empty hallway space, so the amphipod
@@ -101,13 +125,44 @@ def Cost(start: AmphipodState, end: AmphipodState) -> float:
     return ManhattanDistance(startPoint, endPoint) * costs[startValue]
 
 
-def ReplacePosition(oldState: AmphipodState, c: str, x: int, i: int) -> AmphipodState:
+def ReplacePosition(oldState: AmphipodState, c: str, x: int, y: int, i: int) -> AmphipodState:
     newState = oldState.copy()
     positions = newState[c][:]
-    positions[i] = Point(x, 0)
+    positions[i] = Point(x, y)
     positions.sort()
     newState[c] = positions
     return newState
+
+
+def MoveHome(state: AmphipodState, c: str, i: int, position: Point) -> Optional[AmphipodState]:
+    """
+    Given an amphipod in the hall, move it home if possible. This isn't iterable
+    because there's only one possible move.
+    """
+    bottomPosition = AtPoint(state, Point(homeX[c], -2))
+    # If the bottom position has a character that isn't at home, return None.
+    if bottomPosition and bottomPosition != c:
+        return None
+    # At this point, if there's something in the bottom position, it's the character
+    # at home. If there isn't, this is the target spot. If there is something here,
+    # this is the target. If not, we'll check to see if the upper spot is open and
+    # if so, make that the target.
+    if bottomPosition is None:
+        targetY = -2
+    else:
+        # Now we know the bottom position is a character at home. If the top position
+        # is empty, it is the target.
+        topPosition = AtPoint(state, Point(homeX[c], -1))
+        if topPosition:
+            # There's something in the top position that is not a character at home.
+            # We can't move here.
+            return None
+        targetY = -1
+    for testX in range(position.x - 1, homeX[c], -1) if position.x > homeX[c] else range(position.x + 1, homeX[c]):
+        # Look to see if there's something between here and the home position.
+        if AtPoint(state, Point(testX, 0)):
+            return None
+    return ReplacePosition(state, c, homeX[c], targetY, i)
 
 
 def MoveToHall(state: AmphipodState, c: str, i: int, position: Point) -> Iterable[Optional[AmphipodState]]:
@@ -133,22 +188,14 @@ def MoveToHall(state: AmphipodState, c: str, i: int, position: Point) -> Iterabl
             # If we've encountered another amphipod in the hall, stop looking in this direction.
             break
         if testX in hallXPositions:
-            yield ReplacePosition(state, c, testX, i)
+            yield ReplacePosition(state, c, testX, 0, i)
     for testX in range(position.x + 1, 11):
         # Look at the positions to the right.
         if Point(testX, 0) in AllPositions(state):
             # If we've encountered another amphipod in the hall, stop looking in this direction.
             break
         if testX in hallXPositions:
-            yield ReplacePosition(state, c, testX, i)
-
-
-def MoveHome(state: AmphipodState, c: str, i: int, position: Point) -> Iterable[Optional[AmphipodState]]:
-    """
-    Given an amphipod in the hall, move it home if possible.
-    """
-    if AtPoint(state, Point(homeX[c], -2)) != c:
-        return None
+            yield ReplacePosition(state, c, testX, 0, i)
 
 
 def Successors(state: AmphipodState) -> Iterable[AmphipodState]:
@@ -156,7 +203,9 @@ def Successors(state: AmphipodState) -> Iterable[AmphipodState]:
     for c in state:
         for i, position in enumerate(state[c]):
             if position.y == 0:
-                continue
+                newState = MoveHome(state, c, i, position)
+                if newState is not None:
+                    yield newState
             else:
                 for s in MoveToHall(state, c, i, position):
                     if s:
@@ -184,23 +233,9 @@ def PrintAmphipodState(state: AmphipodState) -> None:
 
 if __name__ == "__main__":
     pods = AmphipodStateFromText(TEST.splitlines())
-    PrintAmphipodState(pods)
-    previous = pods
-    for s in Successors(pods):
-        print(f"Cost: {Cost(previous, s)}")
-        PrintAmphipodState(s)
-    print("\n\n\nNext\n\n\n")
-    i = 0
-    previous = s
-    for t in Successors(s):
-        i += 1
-        if i == 13:
-            u = t
-        print(f"Cost: {Cost(previous, t)}")
-        PrintAmphipodState(t)
-
-    print("\n\n\nNext\n\n\n")
-    previous = u
-    for v in Successors(u):
-        print(f"Cost: {Cost(previous, v)}")
-        PrintAmphipodState(v)
+    solution = astar(pods, IsComplete, Successors, Heuristic, Cost)
+    if solution:
+        PrintAmphipodState(solution.state)
+        print(f"Energy: {solution.cost}")
+    else:
+        print("No solution found.")
