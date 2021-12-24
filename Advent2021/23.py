@@ -21,33 +21,23 @@ class Point:
         if self.y == other.y:
             return self.x < other.x
         return self.y < other.y
+        
 
 
 def ManhattanDistance(p1: Point, p2: Point) -> int:
     return abs(p1.x - p2.x) + abs(p1.y - p2.y)
 
 
-class AmphipodState(object):
-    def __init__(self):
-        self._keys = ('A', 'B', 'C', 'D')
-        self._data: dict[str, list[Point]] = {}
-        for key in self._keys:
-            self._data[key] = []
-
-    def keys(self) -> Iterable[str]:
-        return self._keys
-
-    def __getitem__(self, __k: str) -> list[Point]:
-        return self._data[__k]
-
-    def __setitem__(self, __k: str, value: list[Point]) -> None:
-        self._data[__k] = value
-
-    def __len__(self) -> int:
-        return len(self._data)
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self._keys)
+@dataclass(frozen=True)
+class AmphipodState:
+    a1: Point
+    a2: Point
+    b1: Point
+    b2: Point
+    c1: Point
+    c2: Point
+    d1: Point
+    d2: Point
 
 
 homeX: dict[str, int] = {'A': 2, 'B': 4, 'C': 6, 'D': 8}
