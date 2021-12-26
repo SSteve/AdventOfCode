@@ -149,7 +149,8 @@ def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], 
     Parameters
     ----------
     initial : T
-        The initial state.
+        The initial state. T must be a hashable type. (Note a
+        dictionary is not a hashable type.)
     goal_test : Callable[[T], bool]
         A function that takes a state as input and returns True if
         the goal has been reached.
