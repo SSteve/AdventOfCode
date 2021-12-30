@@ -1,13 +1,19 @@
+from __future__ import annotations
 import re
-from collections import namedtuple
-from itertools import product
+from dataclasses import dataclass
+from enum import IntEnum
+from itertools import combinations_with_replacement
+from typing import Callable, Iterable, Tuple
 
-coordinateRegex = re.compile(r"(on|off) x=(-?\d+)\.\.(-?\d+),y=(-?\d+)\.\.(-?\d+),z=(-?\d+)\.\.(-?\d+)")
+coordinateRegex = re.compile(
+    r"(on|off) x=(-?\d+)\.\.(-?\d+),y=(-?\d+)\.\.(-?\d+),z=(-?\d+)\.\.(-?\d+)")
 
-Extents = namedtuple('Extents', ['minX', 'maxX', 'minY', 'maxY', 'minZ', 'maxZ'])
-Point3d = namedtuple('Point3d', ['x', 'y', 'z'])
+TEST0 = """on x=10..12,y=10..12,z=10..12
+on x=11..13,y=11..13,z=11..13
+off x=9..11,y=9..11,z=9..11
+on x=10..10,y=10..10,z=10..10"""
 
-TEST="""on x=-20..26,y=-36..17,z=-47..7
+TEST = """on x=-20..26,y=-36..17,z=-47..7
 on x=-20..33,y=-21..23,z=-26..28
 on x=-22..28,y=-29..23,z=-38..16
 on x=-46..7,y=-6..46,z=-50..-1
@@ -30,21 +36,602 @@ on x=-41..9,y=-7..43,z=-33..15
 on x=-54112..-39298,y=-85059..-49293,z=-27449..7877
 on x=967..23432,y=45373..81175,z=27513..53682"""
 
-cuboids = set()
-with open("22.txt", "r") as infile:
-    lines = infile.readlines()
-for line in lines:
-    match = re.match(coordinateRegex, line)
-    extent = Extents(*map(int, (match[i] for i in range(2, 8))))
-    if extent.maxX >= -50 and extent.minX <= 50 and extent.maxY >= -50 and extent.minY <= 50 and extent.maxZ >= -50 and extent.minZ <= 50:
-        for x in range(extent.minX, extent.maxX + 1):
-            for y in range(extent.minY, extent.maxY + 1):
-                for z in range(extent.minZ, extent.maxZ + 1):
-                    if x >= -50 and x <= 50 and y >= -50 and y <= 50 and z >= -50 and z <= 50:
-                        p = Point3d(x, y, z)
-                        if match[1] == 'on':
-                            cuboids.add(p)
-                        else:
-                            cuboids.discard(p)
-print(len(cuboids))
-    
+TEST2 = """on x=-5..47,y=-31..22,z=-19..33
+on x=-44..5,y=-27..21,z=-14..35
+on x=-49..-1,y=-11..42,z=-10..38
+on x=-20..34,y=-40..6,z=-44..1
+off x=26..39,y=40..50,z=-2..11
+on x=-41..5,y=-41..6,z=-36..8
+off x=-43..-33,y=-45..-28,z=7..25
+on x=-33..15,y=-32..19,z=-34..11
+off x=35..47,y=-46..-34,z=-11..5
+on x=-14..36,y=-6..44,z=-16..29
+on x=-57795..-6158,y=29564..72030,z=20435..90618
+on x=36731..105352,y=-21140..28532,z=16094..90401
+on x=30999..107136,y=-53464..15513,z=8553..71215
+on x=13528..83982,y=-99403..-27377,z=-24141..23996
+on x=-72682..-12347,y=18159..111354,z=7391..80950
+on x=-1060..80757,y=-65301..-20884,z=-103788..-16709
+on x=-83015..-9461,y=-72160..-8347,z=-81239..-26856
+on x=-52752..22273,y=-49450..9096,z=54442..119054
+on x=-29982..40483,y=-108474..-28371,z=-24328..38471
+on x=-4958..62750,y=40422..118853,z=-7672..65583
+on x=55694..108686,y=-43367..46958,z=-26781..48729
+on x=-98497..-18186,y=-63569..3412,z=1232..88485
+on x=-726..56291,y=-62629..13224,z=18033..85226
+on x=-110886..-34664,y=-81338..-8658,z=8914..63723
+on x=-55829..24974,y=-16897..54165,z=-121762..-28058
+on x=-65152..-11147,y=22489..91432,z=-58782..1780
+on x=-120100..-32970,y=-46592..27473,z=-11695..61039
+on x=-18631..37533,y=-124565..-50804,z=-35667..28308
+on x=-57817..18248,y=49321..117703,z=5745..55881
+on x=14781..98692,y=-1341..70827,z=15753..70151
+on x=-34419..55919,y=-19626..40991,z=39015..114138
+on x=-60785..11593,y=-56135..2999,z=-95368..-26915
+on x=-32178..58085,y=17647..101866,z=-91405..-8878
+on x=-53655..12091,y=50097..105568,z=-75335..-4862
+on x=-111166..-40997,y=-71714..2688,z=5609..50954
+on x=-16602..70118,y=-98693..-44401,z=5197..76897
+on x=16383..101554,y=4615..83635,z=-44907..18747
+off x=-95822..-15171,y=-19987..48940,z=10804..104439
+on x=-89813..-14614,y=16069..88491,z=-3297..45228
+on x=41075..99376,y=-20427..49978,z=-52012..13762
+on x=-21330..50085,y=-17944..62733,z=-112280..-30197
+on x=-16478..35915,y=36008..118594,z=-7885..47086
+off x=-98156..-27851,y=-49952..43171,z=-99005..-8456
+off x=2032..69770,y=-71013..4824,z=7471..94418
+on x=43670..120875,y=-42068..12382,z=-24787..38892
+off x=37514..111226,y=-45862..25743,z=-16714..54663
+off x=25699..97951,y=-30668..59918,z=-15349..69697
+off x=-44271..17935,y=-9516..60759,z=49131..112598
+on x=-61695..-5813,y=40978..94975,z=8655..80240
+off x=-101086..-9439,y=-7088..67543,z=33935..83858
+off x=18020..114017,y=-48931..32606,z=21474..89843
+off x=-77139..10506,y=-89994..-18797,z=-80..59318
+off x=8476..79288,y=-75520..11602,z=-96624..-24783
+on x=-47488..-1262,y=24338..100707,z=16292..72967
+off x=-84341..13987,y=2429..92914,z=-90671..-1318
+off x=-37810..49457,y=-71013..-7894,z=-105357..-13188
+off x=-27365..46395,y=31009..98017,z=15428..76570
+off x=-70369..-16548,y=22648..78696,z=-1892..86821
+on x=-53470..21291,y=-120233..-33476,z=-44150..38147
+off x=-93533..-4276,y=-16170..68771,z=-104985..-24507"""
+
+
+class IntersectionType(IntEnum):
+    """IntersectionType describes the five possible intersections."""
+    # In the following diagrams, 'S' indicates the self cuboid and 'O' indicates the other cuboid.
+    # The ranges are inclusive for the range 10..12 has length three.
+    # No intersection.
+    #           SSSSSSSSSSSSSSSSS
+    #  OOOOOO          -or-           OOOOOO
+    # other.max < self.min or other.min > self.max
+    NONE = 1
+    # For the following states, we assume we've already tested for NONE
+    # so we know other.max >= self.min and other.min <= self.max
+    # ALL: Other extends to or beyond self in both directions.
+    #           SSSSSSSSSSSSSSSSS      or    SSSSSSSSSSSSSSSSS
+    #         OOOOOOOOOOOOOOOOOOOOOO         OOOOOOOOOOOOOOOOO
+    # other.min <= self.min and other.max >= self.max
+    ALL = 2
+    # UPPER: Other intersects self and extends to or past self.max.
+    #           SSSSSSSSSSSSSSSSS
+    #                      OOOOOOOOOOOOOO
+    # other.min > self.min and other.max >= self.max
+    UPPER = 3
+    # LOWER: Other starts at or below self and ends before the end of self.
+    #           SSSSSSSSSSSSSSSSS
+    #      OOOOOOOOOOOOOO
+    # other.min <= self.min and other.max < self.max
+    LOWER = 4
+    # INSIDE: Other starts and ends within self.
+    #           SSSSSSSSSSSSSSSSS
+    #               OOOOOOOOO
+    # other.min > self.min and other.max < self.max
+    INSIDE = 5
+
+
+@dataclass(frozen=True)
+class Cuboid:
+    minX: int
+    maxX: int
+    minY: int
+    maxY: int
+    minZ: int
+    maxZ: int
+    onOff: bool = True
+
+    @classmethod
+    def FromRanges(cls, ranges: dict[str, Tuple[int, int]]) -> Cuboid:
+        minX = ranges['X'][0]
+        maxX = ranges['X'][1]
+        minY = ranges['Y'][0]
+        maxY = ranges['Y'][1]
+        minZ = ranges['Z'][0]
+        maxZ = ranges['Z'][1]
+        return cls(minX, maxX, minY, maxY, minZ, maxZ)
+
+    @property
+    def Volume(self) -> int:
+        return (self.maxX - self.minX + 1) * \
+            (self.maxY - self.minY + 1) * \
+            (self.maxZ - self.minZ + 1)
+
+    @property
+    def Dimensions(self) -> Tuple[int, int, int]:
+        return (self.maxX - self.minX + 1, self.maxY - self.minY + 1, self.maxZ - self.minZ + 1)
+
+    def __getitem__(self, index: str) -> Tuple[int, int]:
+        if index == 'X':
+            return (self.minX, self.maxX)
+        if index == 'Y':
+            return (self.minY, self.maxY)
+        if index == 'Z':
+            return (self.minZ, self.maxZ)
+        raise IndexError("Index must be X, Y, or Z.")
+
+    def __repr__(self) -> str:
+        # on x=-20..33,y=-21..23,z=-26..28
+        return f"{'on' if self.onOff else 'off'} x={self.minX}..{self.maxX},y=" + \
+            f"{self.minY}..{self.maxY},z={self.minZ}..{self.maxZ}"
+
+    def Intersect(self, other: Cuboid) -> list[Tuple[str, IntersectionType]]:
+        intersections: list[Tuple[str, IntersectionType]] = []
+        for axis in ('X', 'Y', 'Z'):
+            if other[axis][1] < self[axis][0] or other[axis][0] > self[axis][1]:
+                intersections.append((axis, IntersectionType.NONE))
+            elif other[axis][0] <= self[axis][0] and other[axis][1] >= self[axis][1]:
+                intersections.append((axis, IntersectionType.ALL))
+            elif other[axis][0] > self[axis][0] and other[axis][1] >= self[axis][1]:
+                intersections.append((axis, IntersectionType.UPPER))
+            elif other[axis][0] <= self[axis][0] and other[axis][1] < self[axis][1]:
+                intersections.append((axis, IntersectionType.LOWER))
+            elif other[axis][0] > self[axis][0] and other[axis][1] < self[axis][1]:
+                intersections.append((axis, IntersectionType.INSIDE))
+            else:
+                raise ValueError("Unknown intersection type.")
+
+        return intersections
+
+    @staticmethod
+    def SortIntersections(intersections: list[Tuple[str, IntersectionType]]) -> \
+            Tuple[Tuple[str, ...], Tuple[IntersectionType, ...]]:
+        sortedIntersections = sorted(intersections, key=lambda x: x[1])
+        axes = tuple(i[0] for i in sortedIntersections)
+        intersectionTypes = tuple(i[1] for i in sortedIntersections)
+        return (axes, intersectionTypes)
+
+    def BelowOther(self, other: Cuboid, axis: str) -> Tuple[int, int]:
+        # Return the area below the other's area on this axis.
+        return (self[axis][0], other[axis][0] - 1)
+
+    def AboveOther(self, other: Cuboid, axis: str) -> Tuple[int, int]:
+        # Return the area above the other's area on this axis.
+        return(other[axis][1] + 1, self[axis][1])
+
+    def AlongOtherUpper(self, other: Cuboid, axis: str) -> Tuple[int, int]:
+        # Return the area alongside the other's area that intersects the
+        # upper part of self's area on this axis.
+        return(other[axis][0], self[axis][1])
+
+    def AlongOtherLower(self, other: Cuboid, axis: str) -> Tuple[int, int]:
+        # Return the area alongside the other's area that intersects the
+        # lower part of self's area on this axis.
+        return(self[axis][0], other[axis][1])
+
+    @staticmethod
+    def AllAllAll(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        raise StopIteration
+
+    @staticmethod
+    def AllAllUpper(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns one cuboid
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllAllLower(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns one cuboid
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllAllInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns two cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllUpperUpper(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns two cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = this[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AlongOtherUpper(other, a2)
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllUpperLower(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns two cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = this[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AlongOtherUpper(other, a2)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllUpperInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns three cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = this[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AlongOtherUpper(other, a2)
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllLowerLower(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns two cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this.AboveOther(other, a2)
+        ranges[a3] = this[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AlongOtherLower(other, a2)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllLowerInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns three cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this.AboveOther(other, a2)
+        ranges[a3] = this[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AlongOtherLower(other, a2)
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def AllInsideInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns four cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = this[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = other[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def UpperUpperUpper(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns three cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = this.AlongOtherUpper(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.BelowOther(other, a1)
+        ranges[a2] = this.AlongOtherUpper(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def UpperUpperLower(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns three cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = this.AlongOtherLower(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.BelowOther(other, a1)
+        ranges[a2] = this.AlongOtherUpper(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def UpperLowerInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns four cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        ranges[a3] = other[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.BelowOther(other, a1)
+        ranges[a2] = this.AlongOtherLower(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def UpperUpperInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns four cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = other[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.BelowOther(other, a1)
+        ranges[a2] = this.AlongOtherUpper(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def UpperLowerLower(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns three cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        ranges[a3] = this.AlongOtherLower(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.BelowOther(other, a1)
+        ranges[a2] = this.AlongOtherLower(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def UpperInsideInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns five cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.BelowOther(other, a1)
+        ranges[a3] = other[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.AlongOtherUpper(other, a1)
+        ranges[a2] = this.BelowOther(other, a2)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def LowerLowerLower(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns three cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        ranges[a3] = this.AlongOtherLower(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.AboveOther(other, a1)
+        ranges[a2] = this.AlongOtherLower(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def LowerLowerInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns four cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        ranges[a3] = other[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.AboveOther(other, a1)
+        ranges[a2] = this.AlongOtherLower(other, a2)
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def LowerInsideInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns five cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = other[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.AboveOther(other, a1)
+        ranges[a2] = other[a2]
+        yield Cuboid.FromRanges(ranges)
+
+    @staticmethod
+    def InsideInsideInside(this: Cuboid, other: Cuboid, a1: str, a2: str, a3: str) -> Iterable[Cuboid]:
+        # Returns six cuboids
+        ranges: dict[str, Tuple[int, int]] = {}
+        ranges[a1] = this[a1]
+        ranges[a2] = this[a2]
+        ranges[a3] = this.BelowOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a3] = this.AboveOther(other, a3)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.BelowOther(other, a2)
+        ranges[a3] = other[a3]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a2] = this.AboveOther(other, a2)
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.BelowOther(other, a1)
+        ranges[a2] = other[a2]
+        yield Cuboid.FromRanges(ranges)
+        ranges[a1] = this.AboveOther(other, a1)
+        yield Cuboid.FromRanges(ranges)
+
+
+Intersectors: dict[Tuple[IntersectionType, ...], Callable] = {
+    (IntersectionType.ALL, IntersectionType.ALL, IntersectionType.ALL): Cuboid.AllAllAll,
+    (IntersectionType.ALL, IntersectionType.ALL, IntersectionType.UPPER): Cuboid.AllAllUpper,
+    (IntersectionType.ALL, IntersectionType.ALL, IntersectionType.LOWER): Cuboid.AllAllLower,
+    (IntersectionType.ALL, IntersectionType.ALL, IntersectionType.INSIDE): Cuboid.AllAllInside,
+    (IntersectionType.ALL, IntersectionType.UPPER, IntersectionType.UPPER): Cuboid.AllUpperUpper,
+    (IntersectionType.ALL, IntersectionType.UPPER, IntersectionType.LOWER): Cuboid.AllUpperLower,
+    (IntersectionType.ALL, IntersectionType.UPPER, IntersectionType.INSIDE): Cuboid.AllUpperInside,
+    (IntersectionType.ALL, IntersectionType.LOWER, IntersectionType.LOWER): Cuboid.AllLowerLower,
+    (IntersectionType.ALL, IntersectionType.LOWER, IntersectionType.INSIDE): Cuboid.AllLowerInside,
+    (IntersectionType.ALL, IntersectionType.INSIDE, IntersectionType.INSIDE): Cuboid.AllInsideInside,
+    (IntersectionType.UPPER, IntersectionType.UPPER, IntersectionType.UPPER): Cuboid.UpperUpperUpper,
+    (IntersectionType.UPPER, IntersectionType.UPPER, IntersectionType.LOWER): Cuboid.UpperUpperLower,
+    (IntersectionType.UPPER, IntersectionType.UPPER, IntersectionType.INSIDE): Cuboid.UpperUpperInside,
+    (IntersectionType.UPPER, IntersectionType.LOWER, IntersectionType.LOWER): Cuboid.UpperLowerLower,
+    (IntersectionType.UPPER, IntersectionType.LOWER, IntersectionType.INSIDE): Cuboid.UpperLowerInside,
+    (IntersectionType.UPPER, IntersectionType.INSIDE, IntersectionType.INSIDE): Cuboid.UpperInsideInside,
+    (IntersectionType.LOWER, IntersectionType.LOWER, IntersectionType.LOWER): Cuboid.LowerLowerLower,
+    (IntersectionType.LOWER, IntersectionType.LOWER, IntersectionType.INSIDE): Cuboid.LowerLowerInside,
+    (IntersectionType.LOWER, IntersectionType.INSIDE, IntersectionType.INSIDE): Cuboid.LowerInsideInside,
+    (IntersectionType.INSIDE, IntersectionType.INSIDE, IntersectionType.INSIDE): Cuboid.InsideInsideInside,
+}
+
+
+@ dataclass(frozen=True)
+class Point3d:
+    x: int
+    y: int
+    z: int
+
+
+def Part1(lines: list[str]) -> int:
+    cuboids = set()
+    for line in lines:
+        match = re.match(coordinateRegex, line)
+        if match is None:
+            continue
+        extent = Cuboid(*map(int, (match[i]
+                        for i in range(2, 8))), match[1] == 'on')  # type: ignore
+        if extent.maxX >= -50 and extent.minX <= 50 and \
+                extent.maxY >= -50 and extent.minY <= 50 and \
+                extent.maxZ >= -50 and extent.minZ <= 50:
+            for x in range(extent.minX, extent.maxX + 1):
+                for y in range(extent.minY, extent.maxY + 1):
+                    for z in range(extent.minZ, extent.maxZ + 1):
+                        if x >= -50 and x <= 50 and y >= -50 and y <= 50 and z >= -50 and z <= 50:
+                            p = Point3d(x, y, z)
+                            if match[1] == 'on':
+                                cuboids.add(p)
+                            else:
+                                cuboids.discard(p)
+    return len(cuboids)
+
+
+def RebootReactor(lines: list[str], part1: bool = True) -> int:
+    cuboids: set[Cuboid] = set()
+    for line in lines:
+        match = re.match(coordinateRegex, line)
+        if match is None:
+            continue
+        cuboid = Cuboid(*map(int, (match[i]
+                        for i in range(2, 8))), match[1] == 'on')  # type: ignore
+        if cuboid.minX > cuboid.maxX or cuboid.minY > cuboid.maxY or cuboid.minZ > cuboid.maxZ:
+            raise ValueError("Min is greater than Max.")
+        if part1 and (cuboid.maxX < -50 or cuboid.minX > 50 or
+                      cuboid.maxY < -50 or cuboid.minY > 50 or
+                      cuboid.maxZ < -50 or cuboid.minZ > 50):
+            continue
+        cuboidsToAdd: set[Cuboid] = set()
+        cuboidsToRemove: set[Cuboid] = set()
+        if cuboid.onOff:
+            cuboidsToAdd.add(cuboid)
+        for c in cuboids:
+            axesAndIntersections = c.Intersect(cuboid)
+            axes, intersections = c.SortIntersections(axesAndIntersections)
+            # print(axesAndIntersections)
+            # print(axes, intersections)
+            # print(cuboid, c)
+            if any(t == IntersectionType.NONE for t in intersections):
+                continue
+            cuboidsToRemove.add(c)
+            if intersections != (IntersectionType.ALL, IntersectionType.ALL, IntersectionType.ALL):
+                for newCuboid in Intersectors[intersections](c, cuboid, *axes):
+                    # print(newCuboid, newCuboid.Dimensions)
+                    cuboidsToAdd.add(newCuboid)
+
+        cuboids.difference_update(cuboidsToRemove)
+        cuboids.update(cuboidsToAdd)
+
+    return sum(c.Volume for c in cuboids)
+
+
+def CreateIntersectors() -> None:
+    """Create the body of the Intersectors dictionary."""
+    types = [IntersectionType.ALL,
+             IntersectionType.UPPER,
+             IntersectionType.LOWER,
+             IntersectionType.INSIDE]
+
+    names = {IntersectionType.ALL: 'All', IntersectionType.UPPER: 'Upper',
+             IntersectionType.LOWER: 'Lower', IntersectionType.INSIDE: 'Inside'}
+    for c in combinations_with_replacement(types, 3):
+        print(str(c).replace("<", "").replace(">", "").
+              replace(": ", "").replace("3", "").
+              replace("4", "").replace("5", "").replace("2", "") +
+              f": Cuboid.{names[c[0]]}{names[c[1]]}{names[c[2]]},")
+
+
+if __name__ == '__main__':
+    """
+    CreateIntersectors()
+    """
+    part1 = RebootReactor(TEST.splitlines())
+    print(f"Part1 test 1 = {part1}")
+    assert part1 == 590784
+
+    with open("22.txt", "r") as infile:
+        part1 = RebootReactor(infile.readlines())
+    print(f"Part 1: {part1}")
+    assert part1 == 648681
+
+    part1 = RebootReactor(TEST2.splitlines())
+    print(f"TEST2 part 1 = {part1}")
+    assert part1 == 474140
+
+    part2 = RebootReactor(TEST2.splitlines(), False)
+    print(f"TEST2 part 2 = {part2}")
+    assert part2 == 2758514936282235
+
+    with open("22.txt", "r") as infile:
+        part2 = RebootReactor(infile.readlines(), False)
+    print(f"Part 2: {part2}")
