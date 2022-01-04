@@ -1,7 +1,7 @@
 # Adapted from [Classic Computer Science Problems in Python](https://www.manning.com/books/classic-computer-science-problems-in-python)
 # by David Kopec
 from __future__ import annotations
-from typing import TypeVar, Generic, List, Callable, Set, Deque, Dict, Optional
+from typing import TypeVar, Generic, Iterable, List, Callable, Set, Deque, Dict, Optional
 from heapq import heappush, heappop
 
 T = TypeVar('T')
@@ -96,7 +96,7 @@ def costList(node: Node[T]) -> List[float]:
     return costs
 
 
-def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], List[T]]) -> Optional[Node[T]]:
+def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]]) -> Optional[Node[T]]:
     # frontier is where we've yet to go
     frontier: Queue[Node[T]] = Queue()
     frontier.push(Node(initial, None))
@@ -137,7 +137,7 @@ class PriorityQueue(Generic[T]):
         return repr(self._container)
 
 
-def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], List[T]],
+def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]],
           heuristic: Callable[[T], float], cost: Callable[[T, T], float]) -> Optional[Node[T]]:
     # frontier is where we've yet to go
     frontier: PriorityQueue[Node[T]] = PriorityQueue()
@@ -158,5 +158,6 @@ def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], 
 
             if child not in explored or explored[child] > new_cost:
                 explored[child] = new_cost
-                frontier.push(Node(child, current_node, new_cost, heuristic(child)))
+                frontier.push(Node(child, current_node,
+                              new_cost, heuristic(child)))
     return None  # went through everything and never found goal

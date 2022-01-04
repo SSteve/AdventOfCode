@@ -1,5 +1,9 @@
+# Adapted from Classic Computer Science Problems in Python
+# (https://www.manning.com/books/classic-computer-science-problems-in-python)
+# by David Kopec
 from __future__ import annotations
-from typing import TypeVar, Generic, List, Callable, Set, Deque, Dict, Optional
+from collections import deque
+from typing import TypeVar, Generic, Callable, Optional, Iterable
 from heapq import heappush, heappop
 
 T = TypeVar('T')
@@ -7,7 +11,7 @@ T = TypeVar('T')
 
 class Stack(Generic[T]):
     def __init__(self) -> None:
-        self._container: List[T] = []
+        self._container: list[T] = []
 
     @property
     def empty(self) -> bool:
@@ -25,7 +29,7 @@ class Stack(Generic[T]):
 
 class Queue(Generic[T]):
     def __init__(self) -> None:
-        self._container: Deque[T] = Deque()
+        self._container: deque[T] = deque()
 
     @property
     def empty(self) -> bool:
@@ -42,22 +46,25 @@ class Queue(Generic[T]):
 
 
 class Node(Generic[T]):
-    def __init__(self, state: T, parent: Optional['Node'], cost: float = 0.0, heuristic: float = 0.0) -> None:
+    def __init__(self, state: T, parent: Optional[Node], cost: float = 0.0, heuristic: float = 0.0) -> None:
         self.state: T = state
         self.parent: Optional[Node] = parent
         self.cost: float = cost
         self.heuristic: float = heuristic
 
-    def __lt__(self, other: 'Node') -> bool:
+    def __lt__(self, other: Node) -> bool:
         return (self.cost + self.heuristic) < (other.cost + other.heuristic)
 
+    def __repr__(self):
+        return f"Node(state={self.state}, cost={self.cost}, heuristic={self.heuristic}"
 
-def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], List[T]]) -> Optional[Node[T]]:
+
+def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]]) -> Optional[Node[T]]:
     # frontier is where we've yet to go
     frontier: Stack[Node[T]] = Stack()
     frontier.push(Node(initial, None))
     # explored is where we've been
-    explored: Set[T] = {initial}
+    explored: set[T] = {initial}
 
     # keep going while there is more to explore
     while not frontier.empty:
@@ -75,8 +82,8 @@ def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Li
     return None  # went through everything and never found goal
 
 
-def nodeToPath(node: Node[T]) -> List[T]:
-    path: List[T] = [node.state]
+def nodeToPath(node: Node[T]) -> list[T]:
+    path: list[T] = [node.state]
     # work backwards from end to front
     while node.parent is not None:
         node = node.parent
@@ -85,21 +92,12 @@ def nodeToPath(node: Node[T]) -> List[T]:
     return path
 
 
-def costList(node: Node[T]) -> List[float]:
-    costs: List[T] = [node.cost]
-    while node.parent is not None:
-        node = node.parent
-        costs.append(node.cost)
-    costs.reverse()
-    return costs
-
-
-def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], List[T]]) -> Optional[Node[T]]:
+def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], list[T]]) -> Optional[Node[T]]:
     # frontier is where we've yet to go
     frontier: Queue[Node[T]] = Queue()
     frontier.push(Node(initial, None))
     # explored is where we've been
-    explored: Set[T] = {initial}
+    explored: set[T] = {initial}
 
     # keep going while there is more to explore
     while not frontier.empty:
@@ -117,9 +115,9 @@ def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Li
     return None  # went through everything and never found goal
 
 
-def bfsCave(initial: T, goal: T, goal_test: Callable[[T], bool],
+def bfsCave(initial: T, goal: T, goal_test: Callable[[T, T], bool],
             cave,
-            successors: Callable[[T], List[T]]) -> Optional[Node[T]]:
+            successors: Callable[[T, T], list[T]]) -> Optional[Node[T]]:
     """
     Specific version for 15.py
     """
@@ -127,7 +125,7 @@ def bfsCave(initial: T, goal: T, goal_test: Callable[[T], bool],
     frontier: Queue[Node[T]] = Queue()
     frontier.push(Node(initial, None))
     # explored is where we've been
-    explored: Set[T] = {initial}
+    explored: set[T] = {initial}
 
     # keep going while there is more to explore
     while not frontier.empty:
@@ -147,7 +145,7 @@ def bfsCave(initial: T, goal: T, goal_test: Callable[[T], bool],
 
 class PriorityQueue(Generic[T]):
     def __init__(self) -> None:
-        self._container: List[T] = []
+        self._container: list[T] = []
 
     @property
     def empty(self) -> bool:
@@ -163,13 +161,50 @@ class PriorityQueue(Generic[T]):
         return repr(self._container)
 
 
-def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], List[T]],
+def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]],
           heuristic: Callable[[T], float], cost: Callable[[T, T], float]) -> Optional[Node[T]]:
+    """
+    Perform an A* search.
+
+    The A* search finds the optimal cost path from an initial state to
+    a final goal state. It uses callbacks to identify the final goal,
+    successors to the current state, the heuristic (described below),
+    and the cost between one state and the next.
+
+    This implementation is adapted from "Classic Computer Science
+    Problems in Python" by David Kopec.
+
+    Parameters
+    ----------
+    initial : T
+        The initial state. T must be a hashable type. (Note a
+        dictionary is not a hashable type.)
+    goal_test : Callable[[T], bool]
+        A function that takes a state as input and returns True if
+        the goal has been reached.
+    successors : Callable[[T], Iterable[T]]
+        A function that takes a state as input and returns 0 or
+        more states that can come after that state.
+    hueristic : Callable[[T], float]
+        A function that takes a state as input and returns a best-guess
+        cost from there to the goal. It is allowed to be lower than the
+        real cost but must never be higher.
+    cost : Callable[[T, T], float]
+        A function that takes two states as input and returns the
+        actual cost to go from the first to the second.
+
+    Returns
+    -------
+    Returns a Node object containing the final state, the total cost to
+    get there, the state's heuristic value, and a pointer to the
+    previous Node in the solution. The entire solution path is obtained
+    by calling `nodeToPath`.
+    """
     # frontier is where we've yet to go
     frontier: PriorityQueue[Node[T]] = PriorityQueue()
     frontier.push(Node(initial, None, 0.0, heuristic(initial)))
     # explored is where we've been
-    explored: Dict[T, float] = {initial: 0.0}
+    explored: dict[T, float] = {initial: 0.0}
 
     # keep going while there is more to explore
     while not frontier.empty:
@@ -180,9 +215,10 @@ def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], 
             return current_node
         # check where we can go next and haven't explored
         for child in successors(current_state):
-            new_cost: float = current_node.cost + cost(child, current_state)
+            new_cost: float = current_node.cost + cost(current_state, child)
 
             if child not in explored or explored[child] > new_cost:
                 explored[child] = new_cost
-                frontier.push(Node(child, current_node, new_cost, heuristic(child)))
+                frontier.push(Node(child, current_node,
+                              new_cost, heuristic(child)))
     return None  # went through everything and never found goal
