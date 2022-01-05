@@ -2,37 +2,39 @@ import importlib
 
 from collections import defaultdict, deque
 from enum import IntEnum
-from queue import SimpleQueue
-from typing import Dict, List, Deque
+from typing import Tuple
+
 
 class AddressingMode(IntEnum):
     POSITION = 0
     IMMEDIATE = 1
     RELATIVE = 2
 
+
 class IntCode():
-    def __init__(self, initial_memory: str, input_queue: List[int] = [], interactive: bool = True):
+    def __init__(self, initial_memory: str, input_queue: list[int] = [], interactive: bool = True):
         self.memory = [int(x) for x in initial_memory.split(",")]
         self.instruction_pointer: int = 0
         self.halted = False
         self.waiting_for_input = False
-        self.input_queue: Deque[int] = deque(input_queue)
-        self.output_values: List[int] = []
+        self.input_queue: deque[int] = deque(input_queue)
+        self.output_values: list[int] = []
         self.relative_base = 0
         # This is kindof a kludge. It was added after the spec of needing more memory than the original
         # program size. But it works.
-        self.extended_memory: Dict[int, int] = defaultdict(int)
+        self.extended_memory: dict[int, int] = defaultdict(int)
 
         # In interactive mode, input is taken from the terminal. When interactive mode
         # is false, the computer stops and can be restarted after input is available.
         # Defaults to true so that previous problems don't break.
         self.interactive_mode = interactive
-        
+
     def run(self):
         # Set waiting_for_input to false in case we are restarting after receiving new input
         self.waiting_for_input = False
         while not self.halted and not self.waiting_for_input:
-            opcode, modes = self.parse_instruction(self._read_next(AddressingMode.IMMEDIATE))
+            opcode, modes = self.parse_instruction(
+                self._read_next(AddressingMode.IMMEDIATE))
             if opcode == 1:
                 self._add(modes)
             elif opcode == 2:
@@ -54,18 +56,18 @@ class IntCode():
             elif opcode == 99:
                 self._halt()
             else:
-                raise ValueError(f"Unknown opcode: {opcode} at position {self.instruction_pointer}")
-        
+                raise ValueError(
+                    f"Unknown opcode: {opcode} at position {self.instruction_pointer}")
+
     @staticmethod
-    def parse_instruction(instruction: int) -> (int, Deque[AddressingMode]):
+    def parse_instruction(instruction: int) -> Tuple[int, deque[AddressingMode]]:
         opcode = instruction % 100
         instruction = instruction // 100
         modes: deque[AddressingMode] = deque()
         for _ in range(3):
-            modes.append(instruction % 10)
+            modes.append(AddressingMode(instruction % 10))
             instruction = instruction // 10
         return opcode, modes
-
 
     def set_memory(self, address: int, value: int):
         """Set data at given address to value"""
@@ -73,13 +75,13 @@ class IntCode():
             self.memory[address] = value
         else:
             self.extended_memory[address] = value
-        
+
     def get_memory(self, address: int):
         """Get data at given address"""
         if address < len(self.memory):
             return self.memory[address]
         return self.extended_memory[address]
-        
+
     def core_dump(self):
         return self.memory
 
@@ -96,7 +98,8 @@ class IntCode():
         if addressing_mode == AddressingMode.IMMEDIATE:
             result = self.get_memory(self.instruction_pointer)
         elif addressing_mode == AddressingMode.RELATIVE:
-            result = self.get_memory(self.get_memory(self.instruction_pointer) + self.relative_base)
+            result = self.get_memory(self.get_memory(
+                self.instruction_pointer) + self.relative_base)
         else:
             # position mode
             result = self.get_memory(self.get_memory(self.instruction_pointer))
@@ -109,27 +112,27 @@ class IntCode():
         if addressing_mode == AddressingMode.RELATIVE:
             destination += self.relative_base
         return destination
-            
+
     def _halt(self):
         self.halted = True
-                
-    def _add(self, modes: Deque[AddressingMode]):
+
+    def _add(self, modes: deque[AddressingMode]):
         addend1 = self._read_next(modes.popleft())
         addend2 = self._read_next(modes.popleft())
         destination = self._get_destination(modes.popleft())
         summand = addend1 + addend2
         self.set_memory(destination, summand)
         return summand
-        
-    def _multiply(self, modes: Deque[AddressingMode]):
+
+    def _multiply(self, modes: deque[AddressingMode]):
         factor1 = self._read_next(modes.popleft())
         factor2 = self._read_next(modes.popleft())
         destination = self._get_destination(modes.popleft())
         product = factor1 * factor2
         self.set_memory(destination, product)
         return product
-        
-    def _input(self, modes: Deque[AddressingMode]):
+
+    def _input(self, modes: deque[AddressingMode]):
         if len(self.input_queue) == 0 and not self.interactive_mode:
             # If there's not input and we aren't in interactive mode, set the waiting flag and
             # move the instruction pointer back to the beginning of this instruction
@@ -138,28 +141,28 @@ class IntCode():
             return
         destination = self._get_destination(modes.popleft())
         if len(self.input_queue) == 0:
-               value = int(input("Enter an integer: "))
+            value = int(input("Enter an integer: "))
         else:
             value = self.input_queue.popleft()
         self.set_memory(destination, value)
-        
-    def _output(self, modes: Deque[AddressingMode]):
+
+    def _output(self, modes: deque[AddressingMode]):
         value = self._read_next(modes.popleft())
-        self.output_values.append(value) 
-        
-    def _jump_if_true(self, modes: Deque[AddressingMode]):
+        self.output_values.append(value)
+
+    def _jump_if_true(self, modes: deque[AddressingMode]):
         value = self._read_next(modes.popleft())
         address = self._read_next(modes.popleft())
         if value != 0:
             self.instruction_pointer = address
 
-    def _jump_if_false(self, modes: Deque[AddressingMode]):
+    def _jump_if_false(self, modes: deque[AddressingMode]):
         value = self._read_next(modes.popleft())
         address = self._read_next(modes.popleft())
         if value == 0:
             self.instruction_pointer = address
-            
-    def _less_than(self, modes: Deque[AddressingMode]):
+
+    def _less_than(self, modes: deque[AddressingMode]):
         param1 = self._read_next(modes.popleft())
         param2 = self._read_next(modes.popleft())
         destination = self._get_destination(modes.popleft())
@@ -167,8 +170,8 @@ class IntCode():
             self.set_memory(destination, 1)
         else:
             self.set_memory(destination, 0)
-        
-    def _equals(self, modes: Deque[AddressingMode]):
+
+    def _equals(self, modes: deque[AddressingMode]):
         param1 = self._read_next(modes.popleft())
         param2 = self._read_next(modes.popleft())
         destination = self._get_destination(modes.popleft())
@@ -177,10 +180,10 @@ class IntCode():
         else:
             self.set_memory(destination, 0)
 
-    def _set_relative_base(self, modes: Deque[AddressingMode]):
+    def _set_relative_base(self, modes: deque[AddressingMode]):
         offset = self._read_next(modes.popleft())
         self.relative_base += offset
-    
+
     def disassemble(self):
         raise NotImplementedError("Disassemble needs to be updated")
         """
@@ -212,40 +215,52 @@ class IntCode():
         """
 
     def disassemble_add(self):
+        raise NotImplementedError("Disassemble needs to be updated")
+        """
         instruction = self._read_next(AddressingMode.IMMEDIATE)
         addend1 = self._read_next(AddressingMode.IMMEDIATE)
         addend2 = self._read_next(AddressingMode.IMMEDIATE)
         summand = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        return f"{self.instruction_pointer - 4}: {summand} = {self.disassemble_value(addend1, modes.popleft())} + {self.disassemble_value(addend2, addressing_modes // 10 % 10)}"
-        
+        return f"{self.instruction_pointer - 4}: {summand} =
+        {self.disassemble_value(addend1, modes.popleft())} + {self.disassemble_value(addend2,
+        addressing_modes // 10 % 10)}"
+        """
+
     def disassemble_multiply(self):
+        raise NotImplementedError("Disassemble needs to be updated")
+        """
         instruction = self._read_next(AddressingMode.IMMEDIATE)
         factor1 = self._read_next(AddressingMode.IMMEDIATE)
         factor2 = self._read_next(AddressingMode.IMMEDIATE)
         product = self._read_next(AddressingMode.IMMEDIATE)
         addressing_modes = instruction // 100
-        return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(factor1, modes.popleft())} * {self.disassemble_value(factor2, addressing_modes // 10 % 10)}"
-        
+        return f"{self.instruction_pointer - 4}: {product} = {self.disassemble_value(
+            factor1, modes.popleft())} * {self.disassemble_value(factor2, addressing_modes // 10 % 10)}"
+        """
+
     def disassemble_halt(self):
         return f"{self.instruction_pointer}: halt"
-       
+
+
 if __name__ == "__main__":
     # Day 2, Part 1
     with open("2.txt", "r") as infile:
         computer = IntCode(infile.readline())
-        
+
     computer.set_memory(1, 12)
     computer.set_memory(2, 2)
     # print(computer.disassemble())
     computer.run()
-    
-    assert computer.get_memory(0) == 3765464, "Day 2 assertion (addition and multiplication in position mode) failed."
-    
+
+    assert computer.get_memory(
+        0) == 3765464, "Day 2 assertion (addition and multiplication in position mode) failed."
+
     # Day 5, Part 1
     computer = IntCode("1002,4,3,4,33")
     computer.run()
-    assert computer.get_memory(4) == 99, "Day 5 assertion (immediate mode) failed."
+    assert computer.get_memory(
+        4) == 99, "Day 5 assertion (immediate mode) failed."
 
     # Day 5, Part 2
     # Equal (position mode) test
@@ -316,22 +331,31 @@ if __name__ == "__main__":
 
     # Larger jump test
     # Output is 999 if input < 8, 1000 if input == 8, 1001 if input > 8
-    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [7])
+    computer = IntCode(
+        "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21," +
+        "125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [7])
     computer.run()
     assert computer.output_values[0] == 999, "Larger jump test 1 failed"
-    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [8])
+    computer = IntCode(
+        "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21," +
+        "125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [8])
     computer.run()
     assert computer.output_values[0] == 1000, "Larger jump test 2 failed"
-    computer = IntCode("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [9])
+    computer = IntCode(
+        "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21," +
+        "125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [9])
     computer.run()
-    assert computer.output_values[0] == 1001, "Larger jump test 3 failed" 
+    assert computer.output_values[0] == 1001, "Larger jump test 3 failed"
 
     # Relative base offset tests
-    computer = IntCode("109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99")
+    computer = IntCode(
+        "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99")
     computer.run()
-    program = [int(x) for x in "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99".split(",")]
+    program = [int(
+        x) for x in "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99".split(",")]
     for i, value in enumerate(program):
-        assert value == computer.get_memory(i), "Relative base offset test 1 failed"
+        assert value == computer.get_memory(
+            i), "Relative base offset test 1 failed"
     computer = IntCode("1102,34915192,34915192,7,4,7,99,0")
     computer.run()
     output_string = f"{computer.output_values[0]}"
