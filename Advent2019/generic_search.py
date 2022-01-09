@@ -1,7 +1,8 @@
-# Adapted from [Classic Computer Science Problems in Python](https://www.manning.com/books/classic-computer-science-problems-in-python)
+# Adapted from
+# [Classic Computer Science Problems in Python](https://www.manning.com/books/classic-computer-science-problems-in-python)
 # by David Kopec
 from __future__ import annotations
-from typing import TypeVar, Generic, Iterable, List, Callable, Set, Deque, Dict, Optional
+from typing import Deque, TypeVar, Generic, Iterable, Callable, Optional
 from heapq import heappush, heappop
 
 T = TypeVar('T')
@@ -9,7 +10,7 @@ T = TypeVar('T')
 
 class Stack(Generic[T]):
     def __init__(self) -> None:
-        self._container: List[T] = []
+        self._container: list[T] = []
 
     @property
     def empty(self) -> bool:
@@ -54,12 +55,12 @@ class Node(Generic[T]):
         return (self.cost + self.heuristic) < (other.cost + other.heuristic)
 
 
-def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], List[T]]) -> Optional[Node[T]]:
+def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], list[T]]) -> Optional[Node[T]]:
     # frontier is where we've yet to go
     frontier: Stack[Node[T]] = Stack()
     frontier.push(Node(initial, None))
     # explored is where we've been
-    explored: Set[T] = {initial}
+    explored: set[T] = {initial}
 
     # keep going while there is more to explore
     while not frontier.empty:
@@ -77,8 +78,8 @@ def dfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Li
     return None  # went through everything and never found goal
 
 
-def nodeToPath(node: Node[T]) -> List[T]:
-    path: List[T] = [node.state]
+def nodeToPath(node: Node[T]) -> list[T]:
+    path: list[T] = [node.state]
     # work backwards from end to front
     while node.parent is not None:
         node = node.parent
@@ -87,8 +88,8 @@ def nodeToPath(node: Node[T]) -> List[T]:
     return path
 
 
-def costList(node: Node[T]) -> List[float]:
-    costs: List[T] = [node.cost]
+def costList(node: Node[T]) -> list[float]:
+    costs: list[T] = [node.cost]
     while node.parent is not None:
         node = node.parent
         costs.append(node.cost)
@@ -101,7 +102,7 @@ def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], It
     frontier: Queue[Node[T]] = Queue()
     frontier.push(Node(initial, None))
     # explored is where we've been
-    explored: Set[T] = {initial}
+    explored: set[T] = {initial}
 
     # keep going while there is more to explore
     while not frontier.empty:
@@ -121,7 +122,7 @@ def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], It
 
 class PriorityQueue(Generic[T]):
     def __init__(self) -> None:
-        self._container: List[T] = []
+        self._container: list[T] = []
 
     @property
     def empty(self) -> bool:
@@ -143,7 +144,7 @@ def astar(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], 
     frontier: PriorityQueue[Node[T]] = PriorityQueue()
     frontier.push(Node(initial, None, 0.0, heuristic(initial)))
     # explored is where we've been
-    explored: Dict[T, float] = {initial: 0.0}
+    explored: dict[T, float] = {initial: 0.0}
 
     # keep going while there is more to explore
     while not frontier.empty:

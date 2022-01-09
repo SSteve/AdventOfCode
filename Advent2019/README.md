@@ -31,7 +31,7 @@ I had too much going on in December 2019 to be able to finish and stopped after 
 - Dec 17 - [instructions](http://adventofcode.com/2019/day/17) - [solution](./17.py) (Python)
 - Dec 18 - [instructions](http://adventofcode.com/2019/day/18) - [solution](./18.py) (Python)
 - Dec 19 - [instructions](http://adventofcode.com/2019/day/19) - [solution](./19.py) (Python)
-- Dec 20 - [instructions](http://adventofcode.com/2019/day/20)
+- Dec 20 - [instructions](http://adventofcode.com/2019/day/20) - [solution](./20.py) (Python)
 - Dec 21 - [instructions](http://adventofcode.com/2019/day/21)
 - Dec 22 - [instructions](http://adventofcode.com/2019/day/22)
 - Dec 23 - [instructions](http://adventofcode.com/2019/day/23)
