@@ -1,6 +1,8 @@
+from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from typing import List
+
 
 @dataclass
 class BattleItem:
@@ -18,11 +20,12 @@ class Player:
     name: str
     items: List[BattleItem] = field(default_factory=list, compare=False)
 
-    def attack(self, other, shouldPrint=False):
+    def attack(self, other: Player, shouldPrint=False):
         attackDamage = max(1, self.damage - other.armor)
         other.hitPoints -= attackDamage
         if shouldPrint:
-            print(f"The {self.name} deals {self.damage}-{other.armor} = {attackDamage} damage; the {other.name} goes down to {other.hitPoints} hit points.")
+            print(f"The {self.name} deals {self.damage}-{other.armor} = {attackDamage} damage" +
+                  f"; the {other.name} goes down to {other.hitPoints} hit points.")
 
     def wield(self, item):
         self.damage += item.damage
@@ -45,20 +48,24 @@ def readItems(fileName):
         for line in infile:
             match = itemRegex.match(line)
             if match:
-                items.append(BattleItem(match[1], int(match[2]), int(match[3]), int(match[4])))
+                items.append(BattleItem(match[1], int(
+                    match[2]), int(match[3]), int(match[4])))
             else:
                 raise ValueError(f"Couldn't match {line}")
     return items
 
+
 def day21(fileName, shouldPrint):
     characteristicRegex = re.compile(r".*: (\d+)")
     with open(fileName) as infile:
-        match = characteristicRegex.match(infile.readline())
-        bossHitPoints = int(match[1])
-        match = characteristicRegex.match(infile.readline())
-        bossDamage = int(match[1])
-        match = characteristicRegex.match(infile.readline())
-        bossArmor = int(match[1])
+        match1 = characteristicRegex.match(infile.readline())
+        match2 = characteristicRegex.match(infile.readline())
+        match3 = characteristicRegex.match(infile.readline())
+        if match1 is None or match2 is None or match3 is None:
+            raise ValueError("Invalid input.")
+        bossHitPoints = int(match1[1])
+        bossDamage = int(match2[1])
+        bossArmor = int(match3[1])
 
     weapons = readItems("21weapons.txt")
     armor = readItems("21armor.txt")
@@ -66,6 +73,8 @@ def day21(fileName, shouldPrint):
 
     lowestCost = 1e6
     highestCost = 0
+    winningItems = []
+    losingItems = []
     for weapon in weapons:
         for myArmor in armor:
             for leftRing in rings:
@@ -98,7 +107,6 @@ def day21(fileName, shouldPrint):
     print(f"Highest winning cost: {highestCost}")
     for item in losingItems:
         print(f"  - {item}")
-
 
 
 day21("21.txt", False)
