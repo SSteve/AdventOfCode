@@ -1,0 +1,37 @@
+north
+west
+west
+take easter egg
+east
+take mug
+east
+south
+south
+south
+west
+north
+take jam
+south
+east
+north
+take asterisk
+east
+take klein bottle
+south
+west
+west
+take cake
+east
+take tambourine
+south
+east
+take polygon
+north
+drop polygon
+drop easter egg
+drop tambourine
+drop asterisk
+drop mug
+drop jam
+drop klein bottle
+drop cake
