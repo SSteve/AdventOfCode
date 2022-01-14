@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 
 class Spell:
@@ -107,6 +107,7 @@ class Player:
         self.mana = mana
         self.armor = armor
         self.spent = spent
+        self.spellHistory: list[int] = []
 
         # Key is spell index. Value is remaining duration.
         self.activeSpells: dict[int, int] = {}
@@ -117,6 +118,7 @@ class Player:
     def Duplicate(self) -> Player:
         clone = Player(self.hp, self.mana, self.armor, self.spent)
         clone.activeSpells = self.activeSpells.copy()
+        clone.spellHistory = self.spellHistory.copy()
         return clone
 
     def CastSpell(self, spellIndex: int, boss: Boss) -> None:
@@ -125,6 +127,8 @@ class Player:
         """
         if self.hp <= 0 or boss.hp <= 0:
             return
+
+        self.spellHistory.append(spellIndex)
         spell = SPELLS[spellIndex]
         self.mana -= spell.cost
         self.spent += spell.cost
@@ -153,7 +157,8 @@ class Player:
                     spell.end(self, boss)
 
 
-def PlayGame(player: Player, boss: Boss, lowestCost: int = 2**30, hpPerTurn: int = 0) -> int:
+def PlayGame(player: Player, boss: Boss, lowestCost: int = 2**30, hpPerTurn: int = 0,
+             history: list[int] = []) -> Tuple[int, list[int]]:
     for spellIndex, spell in enumerate(SPELLS):
         # Can't cast a spell if it's active.
         if spell in player.activeSpells:
@@ -172,31 +177,44 @@ def PlayGame(player: Player, boss: Boss, lowestCost: int = 2**30, hpPerTurn: int
         newBoss.Attack(newPlayer)
 
         if (newBoss.hp <= 0):
-            lowestCost = min(lowestCost, newPlayer.spent)
+            if newPlayer.spent < lowestCost:
+                lowestCost = newPlayer.spent
+                history = newPlayer.spellHistory.copy()
             continue
         if (newPlayer.hp > 0 and newPlayer.spent < lowestCost):
-            lowestCost = PlayGame(newPlayer, newBoss, lowestCost, hpPerTurn)
-    return lowestCost
+            lowestCost, history = PlayGame(
+                newPlayer, newBoss, lowestCost, hpPerTurn, history)
+    return lowestCost, history
+
+
+def PrintResults(cost: int, history: list[int]) -> None:
+    print(f"Total cost: {cost}")
+    for spellIndex in history:
+        print(f"   {SPELLS[spellIndex].name}")
 
 
 if __name__ == '__main__':
     player = Player(10, 250)
     boss = Boss(13, 8)
-    part1 = PlayGame(player, boss)
+    part1, history = PlayGame(player, boss)
     assert part1 == 173 + 53
+    PrintResults(part1, history)
 
     player = Player(10, 250)
     boss = Boss(14, 8)
-    part1 = PlayGame(player, boss)
+    part1, history = PlayGame(player, boss)
     assert part1 == 229 + 113 + 73 + 173 + 53
+    PrintResults(part1, history)
 
     with open('22.txt', 'r') as infile:
         boss = Boss.FromFile(infile.read().splitlines())
 
     player = Player(50, 500)
-    part1 = PlayGame(player, boss.Duplicate())
+    part1, history = PlayGame(player, boss.Duplicate())
     print(f"Part 1: {part1}")  # 953
+    PrintResults(part1, history)
 
     player = Player(50, 500)
-    part2 = PlayGame(player, boss, hpPerTurn=1)
+    part2, history = PlayGame(player, boss, hpPerTurn=1)
     print(f"Part 2: {part2}")  # 1289
+    PrintResults(part2, history)
