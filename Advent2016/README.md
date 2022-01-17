@@ -19,7 +19,7 @@
 - Dec 6 - [instructions](http://adventofcode.com/2016/day/6) - [solution](./6.py) (Python)
 - Dec 7 - [instructions](http://adventofcode.com/2016/day/7) - [solution](./7.py) (Python)
 - Dec 8 - [instructions](http://adventofcode.com/2016/day/8) - [solution](./8.py) (Python)
-- Dec 9 - [instructions](http://adventofcode.com/2016/day/9)
+- Dec 9 - [instructions](http://adventofcode.com/2016/day/9) - [solution](./9.py) (Python)
 - Dec 10 - [instructions](http://adventofcode.com/2016/day/10)
 - Dec 11 - [instructions](http://adventofcode.com/2016/day/11)
 - Dec 12 - [instructions](http://adventofcode.com/2016/day/12)
