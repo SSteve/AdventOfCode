@@ -174,6 +174,7 @@ class Facility:
 
 
 if __name__ == '__main__':
+    startTime = datetime.now()
     facility = Facility.FromStrings(TEST1.splitlines())
     """
     print(facility)
@@ -204,3 +205,6 @@ if __name__ == '__main__':
     else:
         part2 = len(nodeToPath(solution)) - 1
         print(f"Part 2: {part2}")
+
+    endTime = datetime.now()
+    print(f"Total time: {endTime - startTime}")
