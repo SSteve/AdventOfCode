@@ -100,15 +100,14 @@ fn follow_commands2(commands: &str) -> u32 {
 fn main() {
     let part1test = follow_commands1(TEST);
     println!("Part 1 test: {}", part1test);
-
-    let day2input = fs::read_to_string("../../2.txt").expect("Unable to read input.");
-    let part1 = follow_commands1(&day2input);
-    println!("Part 1: {}", part1);
-
     let part2test = follow_commands2(TEST);
     println!("Part 2 test: {}", part2test);
 
     let day2input = fs::read_to_string("../../2.txt").expect("Unable to read input.");
+
+    let part1 = follow_commands1(&day2input);
+    println!("Part 1: {}", part1);
+
     let part2 = follow_commands2(&day2input);
     println!("Part 2: {}", part2);
 }
