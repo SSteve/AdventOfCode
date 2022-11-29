@@ -1,6 +1,5 @@
 import os
 from datetime import datetime, timedelta
-from sys import argv, base_prefix
 
 
 def create_readme(year: int, this_year: int, base_path: str):
@@ -39,6 +38,8 @@ def create_readme(year: int, this_year: int, base_path: str):
 
     for day in range(1, last_day + 1):
         day_string = f"- Dec {day} - [instructions](http://adventofcode.com/{year}/day/{day})"
+        if os.path.isfile(f"{base_path}/day{day}.py"):
+            day_string += f" - [solution](./day{day}.py) (Python)"
         if os.path.isfile(f"{base_path}/{day}.py"):
             day_string += f" - [solution](./{day}.py) (Python)"
         if os.path.isfile(f"{base_path}/{day}a.py"):
