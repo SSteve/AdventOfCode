@@ -11,7 +11,7 @@
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
 
 ### The Puzzles
-- Dec 1 - [instructions](http://adventofcode.com/2021/day/1) - [solution](./1.py) (Python) - [solution](./1.S) (ARM64 asm)
+- Dec 1 - [instructions](http://adventofcode.com/2021/day/1) - [solution](./1.py) (Python) - [solution](./1.S) (ARM64 asm) - [solution](./day1/src/main.rs) (Rust)
 - Dec 2 - [instructions](http://adventofcode.com/2021/day/2) - [solution](./2.py) (Python) - [solution](./2.S) (ARM64 asm)
 - Dec 3 - [instructions](http://adventofcode.com/2021/day/3) - [solution](./3.py) (Python) - [solution](./3.S) (ARM64 asm)
 - Dec 4 - [instructions](http://adventofcode.com/2021/day/4) - [solution](./4.py) (Python) - [solution](./4.S) (ARM64 asm)
