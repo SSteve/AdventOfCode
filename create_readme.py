@@ -51,6 +51,8 @@ def create_readme(year: int, this_year: int, base_path: str):
             day_string += f" - [solution](./Day{day}/Day{day}/Program.cs) (C#)"
         if os.path.isfile(f"{base_path}/{day}.S"):
             day_string += f" - [solution](./{day}.S) (ARM64 asm)"
+        if os.path.isfile(f"{base_path}/day{day}/src/main.rs"):
+            day_string += f" - [solution](./day{day}/src/main.rs) (Rust)"
         print(day_string)
 
 
