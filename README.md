@@ -1,8 +1,8 @@
-# Advent of Code
+# Advent of Code 2022
 
-## Solutions to [Advent of Code](https://adventofcode.com) puzzles
+## Solutions to [Advent of Code 2022](https://adventofcode.com/2022/) puzzles
 
-Jump to:
+### Jump to
 - [2015](https://github.com/SSteve/AdventOfCode/tree/master/Advent2015)
 - [2016](https://github.com/SSteve/AdventOfCode/tree/master/Advent2016)
 - [2017](https://github.com/SSteve/AdventOfCode/tree/master/Advent2017)
@@ -11,6 +11,5 @@ Jump to:
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
 - [2021](https://github.com/SSteve/AdventOfCode/tree/master/Advent2021)
 
-I discovered Advent of Code in January 2019. I think it was through [PyCoder’s Weekly](https://pycoders.com).
-
-I copied the layout of the repository and structure of the READMEs from [Kate Miháliková](https://github.com/katemihalikova/advent-of-code) whose link I followed from a [few](https://adventofcode.com/2019/leaderboard/day/2) [days](https://adventofcode.com/2019/leaderboard/day/3) [of](https://adventofcode.com/2019/leaderboard/day/4) the Advent of Code 2019 leaderboard.
+### The Puzzles
+- Dec 1 - [instructions](http://adventofcode.com/2022/day/1) - [solution](./day1/src/main.rs) (Rust)
