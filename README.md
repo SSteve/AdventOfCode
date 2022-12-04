@@ -1,4 +1,4 @@
-# Advent of Code 2022
+# Advent of Code
 
 ## Solutions to [Advent of Code](https://adventofcode.com) puzzles
 
