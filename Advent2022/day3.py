@@ -21,7 +21,7 @@ def calculate_priority(rucksack: str) -> int:
     return letter_score(common.pop())
 
 
-def sum_priorities(rucksacks: list[str]):
+def sum_priorities(rucksacks: list[str]) -> int:
     score = 0
     for rucksack in rucksacks:
         score += calculate_priority(rucksack)
@@ -35,7 +35,7 @@ def calculate_group_priority(rucksacks: list[str]) -> int:
     return letter_score(common.pop())
 
 
-def sum_groups(rucksacks: list[str]):
+def sum_groups(rucksacks: list[str]) -> int:
     score = 0
     for i in range(len(rucksacks)//3):
         score += calculate_group_priority(rucksacks[i*3:(i+1)*3])
