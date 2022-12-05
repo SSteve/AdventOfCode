@@ -32,7 +32,6 @@ fn pair_overlaps(pair_string: &str) -> bool {
     let pair2start = caps.get(3).unwrap().as_str().parse::<u32>().unwrap();
     let pair2end = caps.get(4).unwrap().as_str().parse::<u32>().unwrap();
     pair2start <= pair1end && pair2end >= pair1start
-        || pair1start <= pair2end && pair1end >= pair2start
 }
 
 fn count_contained_pairs(pair_strings: &str) -> u32 {
@@ -66,6 +65,8 @@ fn main() {
     let day4input = fs::read_to_string("../day4.txt").expect("Unable to read input.");
     let part1 = count_contained_pairs(&day4input);
     println!("Part 1: {}", part1);
+    assert_eq!(part1, 538);
     let part2 = count_overlapping_pairs(&day4input);
-    println!("Part 2: {}", part2)
+    println!("Part 2: {}", part2);
+    assert_eq!(part2, 792);
 }
