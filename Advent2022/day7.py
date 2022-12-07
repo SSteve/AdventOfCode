@@ -49,25 +49,18 @@ class DirectoryNode:
         return size
 
     def sub_directories(self) -> Generator["DirectoryNode", None, None]:
-        # This is the stack that holds all of the descendents that will be
-        # returned to the caller.
-        iter_stack: list[DirectoryNode] = []
         # This is the stack of directories yet to process.
         process_stack: list[DirectoryNode] = []
-        # We need to process all of the children of this directory.
+        # Put all the children of this directory on the stack.
         for child in self.children.values():
             process_stack.append(child)
 
-        # This is the iterative process of creating the stack of descendents to return.
+        # For each node on the stack, put all of its children on the stack then return the node.
         while len(process_stack) > 0:
             node = process_stack.pop()
-            iter_stack.append(node)
             for child in node.children.values():
                 process_stack.append(child)
-
-        # Now we return the descendents in the iter_stack.
-        while len(iter_stack):
-            yield iter_stack.pop()
+            yield node
 
     def __repr__(self) -> str:
         return f"Name: {self.name}, {len(self.children)} children, {len(self.files)} files"
@@ -77,9 +70,11 @@ def parse_input(terminal_output: list[str]) -> DirectoryNode:
     directory_stack: list[DirectoryNode] = []
     current_directory: DirectoryNode = DirectoryNode("/")
     for line in terminal_output:
+        if line == "$ ls":
+            # We ignore  "$ ls" in the terminal output because
+            # it doesn't change state.
+            continue
         words = line.split(" ")
-        # We ignore  "$ ls" in the terminal output because
-        # it doesn't change state.
         if words[0] == "$" and words[1] == "cd" and words[2] == "..":
             # Move back up one folder.
             current_directory = directory_stack.pop()
@@ -143,7 +138,9 @@ if __name__ == "__main__":
 
     part1 = sum_sizes_of_directories(file_structure, 100000)
     print(f"Part 1: {part1}")
+    assert (part1 == 1778099)  # Make sure changes don't mess anything up
 
     part2 = find_smallest_to_delete(file_structure, 70000000, 30000000)
     print(f"Part 2: {part2}")
     assert (part2 < 41609574)  # My first incorrect answer
+    assert (part2 == 1623571)  # Make sure changes don't mess anything up
