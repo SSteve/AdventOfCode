@@ -196,14 +196,53 @@ def sum_signal_strengths(instructions: list[Instruction]) -> int:
     return sum
 
 
+def sprite_is_visible(cycle: int, x: int) -> bool:
+    horizontal_position = cycle % 40
+    is_visible = horizontal_position-1 <= x <= horizontal_position+1
+    return is_visible
+
+
+def draw_screen(instructions) -> list[str]:
+    screen = ["", "", "", "", "", ""]
+    screen_index = 0
+    x = 1
+    current_cycle = 0
+
+    for instruction in instructions:
+        screen[screen_index] += "#" if sprite_is_visible(
+            current_cycle, x) else " "
+        if instruction.instruction == "noop":
+            current_cycle += 1
+        else:
+            current_cycle += 1
+            if current_cycle % 40 == 0:
+                screen_index += 1
+            screen[screen_index] += "#" if sprite_is_visible(
+                current_cycle, x) else " "
+            current_cycle += 1
+            x += instruction.value
+        if current_cycle % 40 == 0:
+            screen_index += 1
+        if current_cycle >= 240:
+            break
+
+    return screen
+
+
 if __name__ == "__main__":
     instructions = create_instructions(TEST.splitlines())
     part1test = sum_signal_strengths(instructions)
     print(f"Part 1 test: {part1test}")
     assert (part1test == 13140)
+    part2test = draw_screen(instructions)
+    for line in part2test:
+        print(line)
 
     with open("day10.txt") as infile:
         instructions = create_instructions(infile.read().splitlines())
 
     part1 = sum_signal_strengths(instructions)
     print(f"Part 1: {part1}")
+    part2 = draw_screen(instructions)
+    for line in part2:
+        print(line)
