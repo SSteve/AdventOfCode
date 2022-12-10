@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 
 TEST = """R 4
 U 4
@@ -20,7 +20,7 @@ L 25
 U 20"""
 
 
-class Direction(StrEnum):
+class Direction(Enum):
     LEFT = 'L'
     UP = 'U'
     RIGHT = 'R'
@@ -67,10 +67,7 @@ class Point:
         if abs(delta_x > 2) or abs(delta_y > 2):
             raise ValueError(
                 f"Unexpected positioning. Δx = {delta_x}, Δy = {delta_y}.")
-        if delta_x == 0 and delta_y == 0 \
-                or delta_x == 0 and abs(delta_y) == 1 \
-                or delta_y == 0 and abs(delta_x) == 1 \
-                or abs(delta_x) == 1 and abs(delta_y) == 1:
+        if abs(delta_x) <= 1 and abs(delta_y) <= 1:
             return self
         return Point(self.x + sign(delta_x), self.y + sign(delta_y))
 
@@ -130,6 +127,8 @@ if __name__ == "__main__":
 
     part1 = count_tail_locations(motions)
     print(f"Part 1: {part1}")
+    assert(part1 == 5695)
 
     part2 = count_rope_end_locations(motions)
     print(f"Part 2: {part2}")
+    assert(part2 == 2434)
