@@ -2,9 +2,12 @@ use std::collections::HashSet;
 use std::fs;
 
 fn find_start(signal: &str, window_length: u32) -> Option<u32> {
-    let chars: Vec<char> = signal.chars().collect();
-    for (index, window) in chars.windows(window_length as usize).enumerate() {
-        let char_set: HashSet<_> = HashSet::from_iter(window.iter());
+    for (index, window) in signal
+        .as_bytes()
+        .windows(window_length as usize)
+        .enumerate()
+    {
+        let char_set: HashSet<_> = HashSet::from_iter(window);
         if char_set.len() == window_length as usize {
             return Some(index as u32 + window_length);
         }
