@@ -22,3 +22,4 @@
 - Dec 8 - [instructions](http://adventofcode.com/2022/day/8) - [solution](./day8.py) (Python)
 - Dec 9 - [instructions](http://adventofcode.com/2022/day/9) - [solution](./day9.py) (Python)
 - Dec 10 - [instructions](http://adventofcode.com/2022/day/10) - [solution](./day10.py) (Python)
+- Dec 11 - [instructions](http://adventofcode.com/2022/day/11) - [solution](./day11.py) (Python)
