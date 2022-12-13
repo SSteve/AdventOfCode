@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Iterable, TypeVar
 
 from generic_search import bfs, nodeToPath
 
@@ -15,12 +15,16 @@ class Point:
     x: int
     y: int
 
+
 T = TypeVar('T')
+
+
 def rindex(lst: list[T], value: T):
     lst.reverse()
     i = lst.index(value)
     lst.reverse()
     return len(lst) - i - 1
+
 
 class HeightMap:
     def __init__(self, lines: list[str]) -> None:
@@ -39,50 +43,39 @@ class HeightMap:
     def is_at_end(self, point: Point) -> bool:
         return point == self.end
 
-    def successors(self, point: Point) -> list[Point]:
+    def successors(self, point: Point) -> Iterable[Point]:
         surrounding = [Point(point.x-1, point.y), Point(point.x+1, point.y),
                        Point(point.x, point.y-1), Point(point.x, point.y+1)]
         reachable_height = self.locations[point] + 1
-        successors = list(filter(lambda p: p in surrounding and
-                                p not in self.bad_starts and
-                                self.locations[p] <= reachable_height, self.locations))
-        return successors
+        return filter(lambda p: p in surrounding and
+                      self.locations[p] <= reachable_height, self.locations)
+
+    def is_at_a(self, point: Point) -> bool:
+        return self.locations[point] == 0
+
+    def reverse_successors(self, point: Point) -> Iterable[Point]:
+        surrounding = [Point(point.x-1, point.y), Point(point.x+1, point.y),
+                       Point(point.x, point.y-1), Point(point.x, point.y+1)]
+        reachable_height = self.locations[point] - 1
+        return filter(lambda p: p in surrounding and
+                      self.locations[p] >= reachable_height, self.locations)
 
     def find_shortest_path_length(self) -> int:
         path = self.find_shortest_path_from_point(self.start)
         return len(path) - 1
 
     def find_shortest_path_from_point(self, point: Point) -> list[Point]:
-        self.bad_starts: set[Point] = set()
         solution_node = bfs(point, self.is_at_end, self.successors)
         if solution_node is None:
             raise ValueError("No solution found.")
         return nodeToPath(solution_node)
 
     def find_shortest_path_from_a(self) -> int:
-        paths: list[list[Point]] = []
-        self.bad_starts: set[Point] = set()
-        for start in filter(lambda p: self.locations[p] == 0 and
-                            p not in self.bad_starts and
-                            (p not in path for path in paths), self.locations):
-            try:
-                paths.append(self.find_shortest_path_from_point(start))
-                print(f"length at {start}: {len(paths[-1]) - 1}")
-            except:
-                print(f"No solution found starting at {start}.")
-                self.bad_starts.add(start)
-                continue
-        print(f"Finished collecting paths. Found {len(paths)}.")
-        # Now we have all of the paths that start at an 'a' location.
-        shortest_path_length = len(self.locations)
-        for path in paths:
-            last_a_location = list(filter(lambda p: self.locations[p] == 0, path))[-1]
-            last_a_index = path.index(last_a_location)
-            if len(path) - last_a_index < shortest_path_length:
-                shortest_path_length = len(path) - last_a_index
-        # The shortest path includes the start point, but we don't count the
-        # start point in our solution.
-        return shortest_path_length - 1
+        # Start at the end and find the shortest path to an 'a' location.
+        solution_node = bfs(self.end, self.is_at_a, self.reverse_successors)
+        if solution_node is None:
+            raise ValueError("No solution found.")
+        return len(nodeToPath(solution_node)) - 1
 
 
 if __name__ == "__main__":
@@ -97,10 +90,10 @@ if __name__ == "__main__":
     with open("day12.txt") as infile:
         height_map = HeightMap(infile.read().splitlines())
 
-    # part1 = height_map.find_shortest_path_length()
-    # print(f"Part 1: {part1}")
-    # assert (part1 == 456)
+    part1 = height_map.find_shortest_path_length()
+    print(f"Part 1: {part1}")
+    assert (part1 == 456)
 
     part2 = height_map.find_shortest_path_from_a()
     print(f"Part 2: {part2}")
-    # assert (part2 == 29)
+    assert (part2 == 454)
