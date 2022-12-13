@@ -2,9 +2,10 @@
 # (https://www.manning.com/books/classic-computer-science-problems-in-python)
 # by David Kopec
 from __future__ import annotations
+
 from collections import deque
-from typing import TypeVar, Generic, Callable, Optional, Iterable
-from heapq import heappush, heappop
+from heapq import heappop, heappush
+from typing import Callable, Generic, Iterable, Optional, TypeVar
 
 T = TypeVar('T')
 
@@ -92,7 +93,7 @@ def nodeToPath(node: Node[T]) -> list[T]:
     return path
 
 
-def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], list[T]]) -> Optional[Node[T]]:
+def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], Iterable[T]]) -> Optional[Node[T]]:
     """
     Perform breadth-first search.
 
@@ -117,8 +118,8 @@ def bfs(initial: T, goal_test: Callable[[T], bool], successors: Callable[[T], li
 
     Returns
     -------
-    Returns a Node object containing the final staten. The entire 
-    solution path is obtained by calling `nodeToPath`.
+    Returns a Node object containing the final state or None if no solution
+    was found. The entire solution path is obtained by calling `nodeToPath`.
     """
     # frontier is where we've yet to go
     frontier: Queue[Node[T]] = Queue()
