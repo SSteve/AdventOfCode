@@ -26,3 +26,5 @@
 - Dec 12 - [instructions](http://adventofcode.com/2022/day/12) - [solution](./day12.py) (Python) - [solution](./day12/src/main.rs) (Rust)
 - Dec 13 - [instructions](http://adventofcode.com/2022/day/13) - [solution](./day13.py) (Python)
 - Dec 14 - [instructions](http://adventofcode.com/2022/day/14) - [solution](./day14.py) (Python)
+- Dec 15 - [instructions](http://adventofcode.com/2022/day/15) - [solution](./day15.py) (Python)
+- Dec 16 - [instructions](http://adventofcode.com/2022/day/16)
