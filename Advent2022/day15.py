@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Self
 
 TEST = """Sensor at x=2, y=18: closest beacon is at x=-2, y=15
 Sensor at x=9, y=16: closest beacon is at x=10, y=16
@@ -23,7 +23,7 @@ class Point:
     x: int
     y: int
 
-    def manhattan_distance_to(self, other: "Point") -> int:
+    def manhattan_distance_to(self, other: Self) -> int:
         return abs(self.x - other.x) + abs(self.y - other.y)
 
 
