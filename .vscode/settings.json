@@ -1,4 +1,11 @@
 {
-    "python.pythonPath": "/Users/steve/Envs/advent/bin/python",
-    "python.formatting.provider": "autopep8"
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "ruff.lint.run": "onSave",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit",
+      "source.fixAll.unusedImports": "never"
+    }  
 }
