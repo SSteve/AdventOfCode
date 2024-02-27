@@ -10,6 +10,7 @@
 - [2019](https://github.com/SSteve/AdventOfCode/tree/master/Advent2019)
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
 - [2021](https://github.com/SSteve/AdventOfCode/tree/master/Advent2021)
+- [2023](https://github.com/SSteve/AdventOfCode/tree/master/Advent2023)
 
 ### The Puzzles
 - Dec 1 - [instructions](http://adventofcode.com/2022/day/1) - [solution](./day1/src/main.rs) (Rust)
