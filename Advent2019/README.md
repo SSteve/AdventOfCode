@@ -9,6 +9,8 @@
 - [2018](https://github.com/SSteve/AdventOfCode/tree/master/Advent2018)
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
 - [2021](https://github.com/SSteve/AdventOfCode/tree/master/Advent2021)
+- [2022](https://github.com/SSteve/AdventOfCode/tree/master/Advent2022)
+- [2023](https://github.com/SSteve/AdventOfCode/tree/master/Advent2023)
 
 I had too much going on in December 2019 to be able to finish and stopped after Day 17. In 2022 I went back and started where I left off.
 ### The Puzzles

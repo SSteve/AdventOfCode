@@ -9,6 +9,8 @@
 - [2019](https://github.com/SSteve/AdventOfCode/tree/master/Advent2019)
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
 - [2021](https://github.com/SSteve/AdventOfCode/tree/master/Advent2021)
+- [2022](https://github.com/SSteve/AdventOfCode/tree/master/Advent2022)
+- [2023](https://github.com/SSteve/AdventOfCode/tree/master/Advent2023)
 
 I did the 2015 puzzles after I discovered Advent of Code in January 2019.
 

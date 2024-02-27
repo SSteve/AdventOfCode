@@ -7,6 +7,10 @@
 - [2016](https://github.com/SSteve/AdventOfCode/tree/master/Advent2016)
 - [2017](https://github.com/SSteve/AdventOfCode/tree/master/Advent2017)
 - [2019](https://github.com/SSteve/AdventOfCode/tree/master/Advent2019)
+- [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
+- [2021](https://github.com/SSteve/AdventOfCode/tree/master/Advent2021)
+- [2022](https://github.com/SSteve/AdventOfCode/tree/master/Advent2022)
+- [2023](https://github.com/SSteve/AdventOfCode/tree/master/Advent2023)
 
 These are the first puzzles I did. I was still working things out as I went along so some of this code is pretty janky.
 

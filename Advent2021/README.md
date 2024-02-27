@@ -9,6 +9,8 @@
 - [2018](https://github.com/SSteve/AdventOfCode/tree/master/Advent2018)
 - [2019](https://github.com/SSteve/AdventOfCode/tree/master/Advent2019)
 - [2020](https://github.com/SSteve/AdventOfCode/tree/master/Advent2020)
+- [2022](https://github.com/SSteve/AdventOfCode/tree/master/Advent2022)
+- [2023](https://github.com/SSteve/AdventOfCode/tree/master/Advent2023)
 
 ### The Puzzles
 - Dec 1 - [instructions](http://adventofcode.com/2021/day/1) - [solution](./1.py) (Python) - [solution](./1.S) (ARM64 asm) - [solution](./day1/src/main.rs) (Rust)
