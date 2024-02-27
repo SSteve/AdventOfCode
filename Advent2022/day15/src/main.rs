@@ -98,6 +98,113 @@ impl Point {
         points
     }
 }
+
+struct Sensor {
+    point: Point,
+    distance: i64,
+    min_coordinate: i64,
+    max_coordinate: i64,
+    points: HashSet<Point>,
+}
+
+impl Iterator for Sensor {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.point.x - self.distance >= self.min_coordinate {
+            let point = Point {
+                x: self.point.x - self.distance,
+                y: self.point.y,
+            };
+            if !self.points.contains(&point) {
+                self.points.insert(point);
+                return Some(point);
+            }
+        }
+        if self.point.x + self.distance <= self.max_coordinate {
+            let point = Point {
+                x: self.point.x + self.distance,
+                y: self.point.y,
+            };
+            if !self.points.contains(&point) {
+                self.points.insert(point);
+                return Some(point);
+            }
+        }
+        if self.point.y - self.distance >= self.min_coordinate {
+            let point = Point {
+                x: self.point.x,
+                y: self.point.y - self.distance,
+            };
+            if !self.points.contains(&point) {
+                self.points.insert(point);
+                return Some(point);
+            }
+        }
+        if self.point.y + self.distance <= self.max_coordinate {
+            let point = Point {
+                x: self.point.x,
+                y: self.point.y + self.distance,
+            };
+            if !self.points.contains(&point) {
+                self.points.insert(point);
+                return Some(point);
+            }
+        }
+        for delta in 1..self.distance {
+            let x_plus = self.point.x + delta;
+            let x_minus = self.point.x - delta;
+            let y_plus = self.point.y + (self.distance - delta);
+            let y_minus = self.point.y - (self.distance - delta);
+            if x_plus <= self.max_coordinate {
+                if y_plus <= self.max_coordinate {
+                    let point = Point {
+                        x: x_plus,
+                        y: y_plus,
+                    };
+                    if !self.points.contains(&point) {
+                        self.points.insert(point);
+                        return Some(point);
+                    }
+                }
+                if y_minus >= self.min_coordinate {
+                    let point = Point {
+                        x: x_plus,
+                        y: y_minus,
+                    };
+                    if !self.points.contains(&point) {
+                        self.points.insert(point);
+                        return Some(point);
+                    }
+                }
+            }
+            if x_minus >= self.min_coordinate {
+                if y_plus <= self.max_coordinate {
+                    let point = Point {
+                        x: x_minus,
+                        y: y_plus,
+                    };
+                    if !self.points.contains(&point) {
+                        self.points.insert(point);
+                        return Some(point);
+                    }
+                }
+                if y_minus >= self.min_coordinate {
+                    let point = Point {
+                        x: x_minus,
+                        y: y_minus,
+                    };
+                    if !self.points.contains(&point) {
+                        self.points.insert(point);
+                        return Some(point);
+                    }
+                }
+            }
+        }
+        None
+    }
+}
+
 struct SensorMap {
     sensors: HashSet<Point>,
     closest_beacons: HashMap<Point, Point>,
