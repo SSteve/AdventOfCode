@@ -30,19 +30,25 @@ def sum_calibrations(lines: list[str]) -> int:
 
     return sum
 
+values = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9}
+
 def get_value(value: str) -> int:
+    if value.isdigit():
+        return int(value)
+    return values[value]
     
 
 def sum_calibrations2(lines: list[str]) -> int:
-    values: dict[str, int] = {}
-    values["one"] = 1
-
-    numberRegex = re.compile(r"one|two|three|four|five|six|seven|eight|nine|[1-9]")
+    forwardRegex = re.compile(r"one|two|three|four|five|six|seven|eight|nine|[1-9]")
+    backwardRegex = re.compile(r"eno|owt|eerht|ruof|evif|xis|neves|thgie|enin|[1-9]")
     sum = 0
 
     for line in lines:
-        match = numberRegex.findall(line)
-        print(f"first: {match[0]}, second: {match[-1]}")
+        match = forwardRegex.search(line)
+        tens = get_value(match.group())
+        match = backwardRegex.search(line[::-1])
+        ones = get_value(match.group()[::-1])
+        sum += tens * 10 + ones
 
     return sum
 
