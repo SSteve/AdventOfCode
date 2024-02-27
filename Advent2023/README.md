@@ -16,7 +16,7 @@
 - Dec 1 - [instructions](http://adventofcode.com/2023/day/1) - [solution](./day1.py) (Python)
 - Dec 2 - [instructions](http://adventofcode.com/2023/day/2) - [solution](./day2.py) (Python)
 - Dec 3 - [instructions](http://adventofcode.com/2023/day/3) - [solution](./day3.py) (Python)
-- Dec 4 - [instructions](http://adventofcode.com/2023/day/4)
+- Dec 4 - [instructions](http://adventofcode.com/2023/day/4) - [solution](./day4.py) (Python)
 - Dec 5 - [instructions](http://adventofcode.com/2023/day/5)
 - Dec 6 - [instructions](http://adventofcode.com/2023/day/6)
 - Dec 7 - [instructions](http://adventofcode.com/2023/day/7)
