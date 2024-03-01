@@ -140,91 +140,43 @@ def get_ranges_for_map(ranges: set[ValueRange], map: AlmanacMap) -> list[ValueRa
     for line in map:
         ranges = remaining_ranges
         remaining_ranges = set()
-        for range in ranges:
-            if (
-                range.stop_exclusive <= line.source_start
-                or range.start >= line.stop_exclusive
-            ):
+        for value_range in ranges:
+            if value_range.stop_exclusive <= line.source_start or value_range.start >= line.stop_exclusive:
                 # This range is completely outside the range of this line so it passes through unchanged.
-                remaining_ranges.add(range)
+                remaining_ranges.add(value_range)
                 continue
 
-            if (
-                range.start >= line.source_start
-                and range.stop_exclusive <= line.stop_exclusive
-            ):
+            if value_range.start >= line.source_start and value_range.stop_exclusive <= line.stop_exclusive:
                 # This range is completely inside the range of this line so passes through as a single
                 # range offset by this line's delta.
-                output_ranges.add(range.from_delta(line.delta))
+                output_ranges.add(value_range.from_delta(line.delta))
                 continue
 
             # At this point we know the range is split by this line.
-            if range.start < line.source_start:
+            if value_range.start < line.source_start:
                 # The part of this range to the left of the line is passed through unchanged.
-                remaining_ranges.add(range.with_stop_exclusive(line.source_start))
-                range = range.with_start(line.source_start)
+                remaining_ranges.add(value_range.with_stop_exclusive(line.source_start))
+                value_range = value_range.with_start(line.source_start)
 
-            if range.stop_exclusive > line.stop_exclusive:
+            if value_range.stop_exclusive > line.stop_exclusive:
                 # The part of this range to the right of the line is passed through unchanged.
-                remaining_ranges.add(range.with_start(line.stop_exclusive))
-                range = range.with_stop_exclusive(line.stop_exclusive)
+                remaining_ranges.add(value_range.with_start(line.stop_exclusive))
+                value_range = value_range.with_stop_exclusive(line.stop_exclusive)
 
             # The remainder of this range is now completely inside the range.
-            output_ranges.add(range.from_delta(line.delta))
+            output_ranges.add(value_range.from_delta(line.delta))
 
     return output_ranges | remaining_ranges
 
 
-def closest_location_for_ranges(ranges: list[ValueRange], map: AlmanacMap) -> int:
-    closest_location = float("inf")
-
-    for value_range in ranges:
-        for value in range(value_range.start, value_range.stop_exclusive):
-            location = process_map(value, map)
-            closest_location = min(location, closest_location)
-
-    return closest_location
-
-
-def combine_ranges(ranges: set[ValueRange]) -> set[ValueRange]:
-    sorted_ranges = sorted(ranges)
-    combined_ranges: set[ValueRange] = set()
-
-    current_index = 0
-    while current_index < len(sorted_ranges):
-        current_range = sorted_ranges[current_index]
-        if current_index == len(sorted_ranges) - 1:
-            combined_ranges.add(current_range)
-            break
-        compare_index = current_index + 1
-        while compare_index < len(sorted_ranges):
-            compare_range = sorted_ranges[compare_index]
-            if compare_range.start <= current_range.stop_exclusive:
-                current_range = current_range.with_stop_exclusive(
-                    compare_range.stop_exclusive
-                )
-                compare_index += 1
-                if compare_index >= len(sorted_ranges):
-                    combined_ranges.add(current_range)
-            else:
-                combined_ranges.add(current_range)
-                current_index = compare_index
-                break
-
-    return set(sorted_ranges)
-
-
-def closest_location_for_seed_range(
-    seed: int, seed_range: int, maps: list[AlmanacMap]
-) -> int:
+def closest_location_for_seed_range(seed: int, seed_range: int, maps: list[AlmanacMap]) -> int:
     value_ranges: set[ValueRange] = set()
     value_ranges.add(ValueRange(seed, seed + seed_range))
-    for map in maps[:-1]:
+    for map in maps:
         value_ranges = get_ranges_for_map(value_ranges, map)
 
-    value_ranges = combine_ranges(value_ranges)
-
-    return closest_location_for_ranges(value_ranges, maps[-1])
+    closest = min(v.start for v in value_ranges)
+    return closest
 
 
 def find_closest_location2(seeds: list[int], maps: list[AlmanacMap]) -> int:
