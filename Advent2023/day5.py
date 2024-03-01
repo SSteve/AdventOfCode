@@ -44,14 +44,44 @@ class AlmanacLine:
 
     @staticmethod
     def from_line(line: str) -> Self:
-        d, s, r = (int(num) for num in line.split())
-        return AlmanacLine(d, s, r)
+        values = (int(num) for num in line.split())
+        return AlmanacLine(*values)
 
     def value_in_range(self, value: int) -> bool:
         return self.source_start <= value < self.source_start + self.range
 
     def process_value(self, value: int) -> int:
-        return value - self.source_start + self.destination_start
+        return value + self.delta
+
+    @property
+    def delta(self) -> int:
+        return self.destination_start - self.source_start
+
+    @property
+    def stop_exclusive(self) -> int:
+        return self.source_start + self.range
+
+
+@dataclass(frozen=True)
+class ValueRange:
+    start: int
+    stop_exclusive: int
+
+    def from_delta(self, delta: int) -> Self:
+        return ValueRange(self.start + delta, self.stop_exclusive + delta)
+
+    def with_start(self, new_start: int) -> Self:
+        return ValueRange(new_start, self.stop_exclusive)
+
+    def with_stop_exclusive(self, new_stop_exclusive: int) -> Self:
+        return ValueRange(self.start, new_stop_exclusive)
+
+    def __lt__(self, other: Self) -> bool:
+        if self.start < other.start:
+            return True
+        if self.start == other.start:
+            return self.stop_exclusive < other.stop_exclusive
+        return False
 
 
 type AlmanacMap = list[AlmanacLine]
@@ -92,7 +122,8 @@ def location_for_seed(seed: int, maps: list[AlmanacMap]) -> int:
 def find_closest_location(lines: list[str]) -> tuple[int, list[int], list[AlmanacMap]]:
     closest_location = float("inf")
 
-    seeds = [int(num) for num in lines[0].split(": ")[1].split()]
+    # seeds = [int(num) for num in lines[0].split(": ")[1].split()]
+    seeds = list(map(int, lines[0].split(": ")[1].split()))
     maps = read_maps(lines[3:])
 
     for seed in seeds:
@@ -102,10 +133,117 @@ def find_closest_location(lines: list[str]) -> tuple[int, list[int], list[Almana
     return closest_location, seeds, maps
 
 
+def get_ranges_for_map(ranges: set[ValueRange], map: AlmanacMap) -> list[ValueRange]:
+    output_ranges: set[ValueRange] = set()
+    remaining_ranges = ranges
+
+    for line in map:
+        ranges = remaining_ranges
+        remaining_ranges = set()
+        for range in ranges:
+            if (
+                range.stop_exclusive <= line.source_start
+                or range.start >= line.stop_exclusive
+            ):
+                # This range is completely outside the range of this line so it passes through unchanged.
+                remaining_ranges.add(range)
+                continue
+
+            if (
+                range.start >= line.source_start
+                and range.stop_exclusive <= line.stop_exclusive
+            ):
+                # This range is completely inside the range of this line so passes through as a single
+                # range offset by this line's delta.
+                output_ranges.add(range.from_delta(line.delta))
+                continue
+
+            # At this point we know the range is split by this line.
+            if range.start < line.source_start:
+                # The part of this range to the left of the line is passed through unchanged.
+                remaining_ranges.add(range.with_stop_exclusive(line.source_start))
+                range = range.with_start(line.source_start)
+
+            if range.stop_exclusive > line.stop_exclusive:
+                # The part of this range to the right of the line is passed through unchanged.
+                remaining_ranges.add(range.with_start(line.stop_exclusive))
+                range = range.with_stop_exclusive(line.stop_exclusive)
+
+            # The remainder of this range is now completely inside the range.
+            output_ranges.add(range.from_delta(line.delta))
+
+    return output_ranges | remaining_ranges
+
+
+def closest_location_for_ranges(ranges: list[ValueRange], map: AlmanacMap) -> int:
+    closest_location = float("inf")
+
+    for value_range in ranges:
+        for value in range(value_range.start, value_range.stop_exclusive):
+            location = process_map(value, map)
+            closest_location = min(location, closest_location)
+
+    return closest_location
+
+
+def combine_ranges(ranges: set[ValueRange]) -> set[ValueRange]:
+    sorted_ranges = sorted(ranges)
+    combined_ranges: set[ValueRange] = set()
+
+    current_index = 0
+    while current_index < len(sorted_ranges):
+        current_range = sorted_ranges[current_index]
+        if current_index == len(sorted_ranges) - 1:
+            combined_ranges.add(current_range)
+            break
+        compare_index = current_index + 1
+        while compare_index < len(sorted_ranges):
+            compare_range = sorted_ranges[compare_index]
+            if compare_range.start <= current_range.stop_exclusive:
+                current_range = current_range.with_stop_exclusive(
+                    compare_range.stop_exclusive
+                )
+                compare_index += 1
+                if compare_index >= len(sorted_ranges):
+                    combined_ranges.add(current_range)
+            else:
+                combined_ranges.add(current_range)
+                current_index = compare_index
+                break
+
+    return set(sorted_ranges)
+
+
+def closest_location_for_seed_range(
+    seed: int, seed_range: int, maps: list[AlmanacMap]
+) -> int:
+    value_ranges: set[ValueRange] = set()
+    value_ranges.add(ValueRange(seed, seed + seed_range))
+    for map in maps[:-1]:
+        value_ranges = get_ranges_for_map(value_ranges, map)
+
+    value_ranges = combine_ranges(value_ranges)
+
+    return closest_location_for_ranges(value_ranges, maps[-1])
+
+
+def find_closest_location2(seeds: list[int], maps: list[AlmanacMap]) -> int:
+    closest_location = float("inf")
+    for seed, seedrange in (seeds[i : i + 2] for i in range(0, len(seeds), 2)):
+        seed_location = closest_location_for_seed_range(seed, seedrange, maps)
+        closest_location = min(closest_location, seed_location)
+
+    return closest_location
+
+
 if __name__ == "__main__":
     part1test, seeds, maps = find_closest_location(TEST.splitlines())
     print(f"Part 1 test: {part1test}")
     assert part1test == 35
+
+    part2test = find_closest_location2(seeds, maps)
+    print(f"Part 2 test: {part2test}")
+    assert part2test == 46
 
     with open("day5.txt") as infile:
         lines = infile.read().splitlines()
@@ -113,3 +251,6 @@ if __name__ == "__main__":
     part1, seeds, maps = find_closest_location(lines)
     print(f"Part 1: {part1}")
     assert part1 == 910845529
+
+    part2 = find_closest_location2(seeds, maps)
+    print(f"Part 2: {part2}")
