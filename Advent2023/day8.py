@@ -1,3 +1,4 @@
+import math
 import re
 from dataclasses import dataclass
 
@@ -55,46 +56,31 @@ def count_steps(lines: list[str]) -> int:
     return step_count
 
 
-@dataclass
-class IndexNode:
-    left: int
-    right: int
-    ends_in_z: bool
-
-
 def count_ghost_steps(lines: list[str]) -> int:
     path = lines[0]
-    node_names: list[str] = []
-    string_nodes: list[Node] = []
+    nodes: dict[str, Node] = {}
+    current_nodes: list[str] = []
     for line in lines[2:]:
         match = re.match(node_regex, line)
-        node_names.append(match[1])
-        string_nodes.append(Node(match[2], match[3]))
+        nodes[match[1]] = Node(match[2], match[3])
+        if match[1][-1] == "A":
+            current_nodes.append(match[1])
 
-    current_nodes: set[int] = set()
-    nodes: list[IndexNode] = []
-    for i, node in enumerate(string_nodes):
-        if node_names[i][-1] == "A":
-            current_nodes.add(i)
-        nodes.append(IndexNode(node_names.index(node.left), node_names.index(node.right), node_names[i][-1] == "Z"))
-
-    step_count = 0
-    current_path_index = 0
-
-    while any(nodes[node_index].ends_in_z is False for node_index in current_nodes):
-        if step_count % 1000000 == 0:
-            print(step_count)
-        new_nodes: set[int] = set()
-        for node in current_nodes:
-            if path[current_path_index] == "L":
-                new_nodes.add(nodes[node].left)
+    # Calculate the cycle length for each of the starting nodes.
+    cycle_lengths: list[int] = []
+    for node in current_nodes:
+        cycle_length = 0
+        while node[-1] != "Z":
+            if path[cycle_length % len(path)] == "L":
+                node = nodes[node].left
             else:
-                new_nodes.add(nodes[node].right)
-        current_nodes = new_nodes
-        step_count += 1
-        current_path_index += 1
-        if current_path_index == len(path):
-            current_path_index = 0
+                node = nodes[node].right
+            cycle_length += 1
+        cycle_lengths.append(cycle_length)
+
+    # The total number of steps is the first time all the cycles line up.
+    # (aka the least common multiple.)
+    step_count = math.lcm(*cycle_lengths)
 
     return step_count
 
