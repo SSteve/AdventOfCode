@@ -52,7 +52,8 @@ class Beam:
     direction: Direction
 
 
-def build_grid(lines: list[str]) -> dict[Point, TileType]:
+def build_grid(lines: list[str]) -> tuple[dict[Point, TileType], int, int]:
+    # Returns the grid and its width and height
     grid: dict[Point, TileType] = {}
     for y, line in enumerate(lines):
         for x, c in enumerate(line):
@@ -67,21 +68,20 @@ def build_grid(lines: list[str]) -> dict[Point, TileType]:
                     grid[Point(x, y)] = TileType.DOWN_RIGHT
                 case "/":
                     grid[Point(x, y)] = TileType.DOWN_LEFT
-    return grid
+    return grid, len(lines[0]), len(lines)
 
 
-def count_energized_tiles(lines: list[str]) -> int:
-    grid = build_grid(lines)
-    max_x = max(p.x for p in grid)
-    max_y = max(p.y for p in grid)
+def count_energized_tiles(
+    grid: dict[Point, TileType], width: int, height: int, start: Beam
+) -> int:
     energized: dict[Point, Direction] = defaultdict(set)
-    beams: list[Beam] = [Beam(Point(0, 0), Direction.RIGHT)]
+    beams: list[Beam] = [start]
 
     while beams:
         beam = beams.pop()
         while (
-            0 <= beam.location.x <= max_x
-            and 0 <= beam.location.y <= max_y
+            0 <= beam.location.x < width
+            and 0 <= beam.location.y < height
             and beam.direction not in energized[beam.location]
         ):
             energized[beam.location].add(beam.direction)
@@ -178,25 +178,70 @@ def count_energized_tiles(lines: list[str]) -> int:
     return len(energized)
 
 
+def count_tiles_part_1(lines: list[str]) -> int:
+    grid, width, height = build_grid(lines)
+    return count_energized_tiles(
+        grid, width, height, Beam(Point(0, 0), Direction.RIGHT)
+    )
+
+
+def find_most_tiles(lines: list[str]) -> int:
+    grid, width, height = build_grid(lines)
+    max_values: list[int] = []
+    max_values.append(
+        max(
+            count_energized_tiles(
+                grid, width, height, Beam(Point(0, y), Direction.RIGHT)
+            )
+            for y in range(height)
+        )
+    )
+
+    max_values.append(
+        max(
+            count_energized_tiles(
+                grid, width, height, Beam(Point(width - 1, y), Direction.LEFT)
+            )
+            for y in range(height)
+        )
+    )
+
+    max_values.append(
+        max(
+            count_energized_tiles(
+                grid, width, height, Beam(Point(x, 0), Direction.DOWN)
+            )
+            for x in range(width)
+        )
+    )
+
+    max_values.append(
+        max(
+            count_energized_tiles(
+                grid, width, height, Beam(Point(x, height - 1), Direction.UP)
+            )
+            for x in range(width)
+        )
+    )
+
+    return max(max_values)
+
+
 if __name__ == "__main__":
-    part1test = count_energized_tiles(TEST.splitlines())
+    part1test = count_tiles_part_1(TEST.splitlines())
     print(f"Part 1 test: {part1test}")
     assert part1test == 46
 
-    """ 
-    part2test = calculate_focusing_power(TEST)
+    part2test = find_most_tiles(TEST.splitlines())
     print(f"Part 2 test: {part2test}")
-    assert part2test == 145
- """
+    assert part2test == 51
 
     with open("day16.txt") as infile:
         lines = infile.read().splitlines()
 
-    part1 = count_energized_tiles(lines)
+    part1 = count_tiles_part_1(lines)
     print(f"Part 1: {part1}")
-    # assert part1 == 510273
+    assert part1 == 8098
 
-    """ 
-    part2 = calculate_focusing_power(lines)
+    part2 = find_most_tiles(lines)
     print(f"Part 2: {part2}")
- """
