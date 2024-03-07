@@ -74,6 +74,18 @@ def build_grid(lines: list[str]) -> tuple[dict[Point, TileType], int, int]:
 def count_energized_tiles(
     grid: dict[Point, TileType], width: int, height: int, start: Beam
 ) -> int:
+    """Count the number of energized tiles with the given starting beam.
+
+    Args:
+        grid (dict[Point, TileType]): The grid of tiles.
+        width (int): Width of the grid.
+        height (int): Height of the grid.
+        start (Beam): Initial beam state.
+
+    Returns:
+        int: Runs the grid with the initial beam state and returns the
+        number of energized tiles.
+    """
     energized: dict[Point, Direction] = defaultdict(set)
     beams: list[Beam] = [start]
 
