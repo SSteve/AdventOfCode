@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable, Self
+from typing import Iterable
 
-from generic_search import astar, nodeToPath
+from generic_search import astar
 
 TEST = """2413432311323
 3215453535623
@@ -46,19 +46,13 @@ class Point:
 @dataclass(frozen=True)
 class Location:
     here: Point
-    last_three: list[Direction]
+    last_three: tuple[Direction]
 
     def with_new_point(self, point: Point, direction: Direction):
         return Location(
             point,
-            [*self.last_three[1:], direction],
+            (*self.last_three[1:], direction),
         )
-
-    def __eq__(self, other: Self):
-        return self.here == other.here
-
-    def __hash__(self):
-        return hash(self.here)
 
 
 class CityMap:
@@ -76,12 +70,22 @@ class CityMap:
         self.height = len(input)
         self.final_location = Point(self.width - 1, self.height - 1)
 
-    def successors(self, location: Location) -> Iterable[Point]:
+    def successors(self, location: Location) -> Iterable[Location]:
         for direction in Direction:
-            if any(d != direction for d in location.last_three):
-                next = location.here.next_from_direction(direction)
-                if next in self.grid:
-                    yield location.with_new_point(next, direction)
+            if location.last_three[-1] and direction.value == (
+                (location.last_three[-1].value + 2) % 4
+            ):
+                # Can't double back on previous direction.
+                continue
+
+            # Test to make sure this direction isn't the same as the previous three.
+            if all(d == direction for d in location.last_three):
+                continue
+
+            # If the next point is valid, return the new location.
+            next = location.here.next_from_direction(direction)
+            if next in self.grid:
+                yield location.with_new_point(next, direction)
 
     def cost_to_location(
         self, this_location: Location, next_location: Location
@@ -113,7 +117,7 @@ def find_shortest_path(lines: list[str]) -> int:
     city_map = CityMap(lines)
     initial_location = Location(
         Point(0, 0),
-        [None, None, None],
+        (None, None, None),
     )
     solution = astar(
         initial_location,
@@ -124,8 +128,8 @@ def find_shortest_path(lines: list[str]) -> int:
     )
     if solution is None:
         return None
-    path = nodeToPath(solution)
-    print(city_map.string_from_path(path))
+    # path = nodeToPath(solution)
+    # print(city_map.string_from_path(path))
     return int(solution.cost)
 
 
@@ -145,7 +149,8 @@ if __name__ == "__main__":
     part1 = find_shortest_path(lines)
     print(f"Part 1: {part1}")
     # 1248 is high.
-    # assert part1 == 8098
+    # 1033 is low.
+    assert part1 == 1044
 
     """ 
     part2 = find_most_tiles(lines)
