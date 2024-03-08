@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Iterable, Self
 
 from generic_search import astar, nodeToPath
@@ -18,21 +19,39 @@ TEST = """2413432311323
 4322674655533"""
 
 
+class Direction(Enum):
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
+
+
 @dataclass(frozen=True)
 class Point:
     x: int
     y: int
 
+    def next_from_direction(self, direction: Direction):
+        match direction:
+            case Direction.UP:
+                return Point(self.x, self.y - 1)
+            case Direction.RIGHT:
+                return Point(self.x + 1, self.y)
+            case Direction.DOWN:
+                return Point(self.x, self.y + 1)
+            case Direction.LEFT:
+                return Point(self.x - 1, self.y)
+
 
 @dataclass(frozen=True)
 class Location:
     here: Point
-    last_three: list[Point]
+    last_three: list[Direction]
 
-    def with_new_point(self, new_x: int, new_y: int):
+    def with_new_point(self, point: Point, direction: Direction):
         return Location(
-            Point(new_x, new_y),
-            [*self.last_three[1:], self.here],
+            point,
+            [*self.last_three[1:], direction],
         )
 
     def __eq__(self, other: Self):
@@ -58,22 +77,11 @@ class CityMap:
         self.final_location = Point(self.width - 1, self.height - 1)
 
     def successors(self, location: Location) -> Iterable[Point]:
-        if location.here.x > 0 and any(
-            p.y != location.here.y for p in [*location.last_three[1:], location.here]
-        ):
-            yield location.with_new_point(location.here.x - 1, location.here.y)
-        if location.here.x < self.width - 1 and any(
-            p.y != location.here.y for p in [*location.last_three[1:], location.here]
-        ):
-            yield location.with_new_point(location.here.x + 1, location.here.y)
-        if location.here.y > 0 and any(
-            p.x != location.here.x for p in [*location.last_three[1:], location.here]
-        ):
-            yield location.with_new_point(location.here.x, location.here.y - 1)
-        if location.here.y < self.height - 1 and any(
-            p.x != location.here.x for p in [*location.last_three[1:], location.here]
-        ):
-            yield location.with_new_point(location.here.x, location.here.y + 1)
+        for direction in Direction:
+            if any(d != direction for d in location.last_three):
+                next = location.here.next_from_direction(direction)
+                if next in self.grid:
+                    yield location.with_new_point(next, direction)
 
     def cost_to_location(
         self, this_location: Location, next_location: Location
@@ -105,7 +113,7 @@ def find_shortest_path(lines: list[str]) -> int:
     city_map = CityMap(lines)
     initial_location = Location(
         Point(0, 0),
-        [Point(-1, -1), Point(-1, -1), Point(-1, -1)],
+        [None, None, None],
     )
     solution = astar(
         initial_location,
