@@ -67,6 +67,19 @@ class Point:
             case Direction.LEFT:
                 return Point(self.x - 1, self.y)
 
+    def add_distance(self, distance: int, direction: Direction):
+        if distance < 0:
+            raise ValueError("Not expecting negative distance.")
+        match direction:
+            case Direction.UP:
+                return Point(self.x, self.y - distance)
+            case Direction.RIGHT:
+                return Point(self.x + distance, self.y)
+            case Direction.DOWN:
+                return Point(self.x, self.y + distance)
+            case Direction.LEFT:
+                return Point(self.x - distance, self.y)
+
 
 def print_grid(grid: set[Point], left: int, right: int, top: int, bottom: int) -> None:
     for y in range(top, bottom - top + 1):
@@ -112,14 +125,29 @@ def trench_size(input: list[str]) -> int:
 
 
 def trench_size_2(input: list[str]) -> int:
-    result = 0
-
+    verticies: list[Point] = []
+    location = Point(0, 0)
+    verticies.append(location)
+    border_length = 0
     for line in input:
         _, val = line.split("(#")
         meters = int(val[:5], 16)
         direction = Direction.from_numeral(val[5])
+        location = location.add_distance(meters, direction)
+        verticies.append(location)
+        border_length += meters
 
-    return result
+    area = 0
+
+    for i in range(len(verticies) - 1):
+        area += (verticies[i].y + verticies[i + 1].y) * (
+            verticies[i].x - verticies[i + 1].x
+        )
+    if verticies[-1] != Point(0, 0):
+        area += (verticies[-1].y + verticies[0].y) * (verticies[-1].x - verticies[0].x)
+    area = area // 2
+
+    return area + border_length // 2 + 1
 
 
 if __name__ == "__main__":
@@ -127,11 +155,10 @@ if __name__ == "__main__":
     print(f"Part 1 test: {part1test}")
     assert part1test == 62
 
-    """ 
     part2test = trench_size_2(TEST.splitlines())
     print(f"Part 2 test: {part2test}")
-    assert part2test == 952408144115
- """
+    assert part2test == 952_408_144_115
+
     with open("day18.txt") as infile:
         lines = infile.read().splitlines()
 
@@ -139,7 +166,7 @@ if __name__ == "__main__":
     print(f"Part 1: {part1}")
     assert part1 == 106459
 
-    """ 
     part2 = trench_size_2(lines)
+    # 63806916814638 is low
     print(f"Part 2: {part2}")
- """
+    assert part2 > 63806916814638
