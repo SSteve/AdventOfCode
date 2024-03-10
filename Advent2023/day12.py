@@ -1,5 +1,6 @@
 from collections import deque
 from dataclasses import dataclass
+from functools import cache
 
 TEST = """???.### 1,1,3
 .??..??...?##. 1,1,3
@@ -73,6 +74,52 @@ def count_arrangements(springs: SpringRecord) -> int:
     return count
 
 
+@cache
+def count_arrangements2(springs: SpringRecord) -> int:
+    # Recursive implementation
+    count = 0
+
+    if len(springs.springs) == 0:
+        if len(springs.counts) == 0:
+            count += 1
+
+    elif springs.springs[0] == ".":
+        count += count_arrangements2(SpringRecord(springs.springs[1:], springs.counts))
+
+    elif springs.springs[0] == "?":
+        # Replace '?' with '.' and go ahead and remove the '.' to avoid a loop.
+        count += count_arrangements2(SpringRecord(springs.springs[1:], springs.counts))
+        count += count_arrangements2(
+            SpringRecord("#" + springs.springs[1:], springs.counts)
+        )
+
+    # Now we know the first character is '#'.
+    elif len(springs.counts) == 0 or len(springs.springs) < springs.counts[0]:
+        # Not a valid arrangement.
+        pass
+
+    elif any(c == "." for c in springs.springs[: springs.counts[0]]):
+        # There's a working string within this count. Not a valid arrangement.
+        pass
+
+    elif (
+        len(springs.springs) > springs.counts[0]
+        and springs.springs[springs.counts[0]] == "#"
+    ):
+        # The character after the count is a broken spring. Not a valid arrangement.
+        pass
+
+    else:
+        # Remove the number of characters in this count and the count. The character after
+        # the characters we're removing must be a working spring (whether it's an unknown
+        # condition or known working) so we'll remove that too.
+        count += count_arrangements2(
+            SpringRecord(springs.springs[springs.counts[0] + 1 :], springs.counts[1:])
+        )
+
+    return count
+
+
 def count_all_arrangements(lines: list[str]) -> int:
     counts = 0
 
@@ -84,24 +131,34 @@ def count_all_arrangements(lines: list[str]) -> int:
     return counts
 
 
+def count_all_unfolded_arrangements(lines: list[str]) -> int:
+    counts = 0
+
+    for line in lines:
+        springs, count_string = line.split()
+        springs = "?".join([springs] * 5)
+        count_string = ",".join([count_string] * 5)
+        count_tuple = tuple(map(int, count_string.split(",")))
+        counts += count_arrangements2(SpringRecord(springs, count_tuple))
+
+    return counts
+
+
 if __name__ == "__main__":
     part1test = count_all_arrangements(TEST.splitlines())
     print(f"Part 1 test: {part1test}")
     assert part1test == 21
 
-    """     
-    part2test = trench_size_2(TEST.splitlines())
+    part2test = count_all_unfolded_arrangements(TEST.splitlines())
     print(f"Part 2 test: {part2test}")
-    # assert part2test == 952_408_144_115
- """
+    assert part2test == 525152
+
     with open("day12.txt") as infile:
         lines = infile.read().splitlines()
 
     part1 = count_all_arrangements(lines)
     print(f"Part 1: {part1}")
-    # assert part1 == 106459
+    assert part1 == 7090
 
-    """ 
-    part2 = trench_size_2(lines)
+    part2 = count_all_unfolded_arrangements(lines)
     print(f"Part 2: {part2}")
- """
