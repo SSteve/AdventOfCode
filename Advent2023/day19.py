@@ -100,16 +100,27 @@ def process_parts(lines: list[str]) -> int:
     return sum(process_part(part, workflows) for part in parts)
 
 
+def count_ratings_combinations(lines: list[str]) -> int:
+    workflows: dict[str, Workflow] = {}
+
+    for line in lines:
+        if len(line) == 0:
+            break
+        brace_position = line.index("{")
+        workflows[line[:brace_position]] = Workflow(line[brace_position + 1 : -1])
+
+    return 0
+
+
 if __name__ == "__main__":
     part1test = process_parts(TEST.splitlines())
     print(f"Part 1 test: {part1test}")
     assert part1test == 19114
 
-    """ 
-    part2test = trench_size_2(TEST.splitlines())
+    part2test = count_ratings_combinations(TEST.splitlines())
     print(f"Part 2 test: {part2test}")
-    assert part2test == 952_408_144_115
- """
+    assert part2test == 167_409_079_868_000
+
     with open("day19.txt") as infile:
         lines = infile.read().splitlines()
 
@@ -117,7 +128,5 @@ if __name__ == "__main__":
     print(f"Part 1: {part1}")
     # assert part1 == 106459
 
-    """ 
-    part2 = trench_size_2(lines)
+    part2 = count_ratings_combinations(lines)
     print(f"Part 2: {part2}")
- """
