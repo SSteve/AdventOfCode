@@ -60,6 +60,9 @@ class Workflow:
             if result := step.process_part(part):
                 return result
 
+    def __str__(self):
+        return ",".join(self.steps)
+
 
 def part_from_string(part_string: str) -> dict[str, int]:
     part: dict[str, int] = {}
