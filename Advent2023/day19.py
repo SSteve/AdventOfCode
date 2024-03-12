@@ -1,3 +1,5 @@
+from math import prod
+
 TEST = """px{a<2006:qkq,m>2090:A,rfg}
 pv{a>1716:R,A}
 lnx{m>1548:A,A}
@@ -40,6 +42,27 @@ class WorkflowStep:
             return self.result if part[self.category] > self.compare_value else None
         else:
             return self.result if part[self.category] < self.compare_value else None
+
+    def part_with_filter(self, part: dict[str, set[int]]) -> dict[str, set[int]]:
+        # Return the resultant part after applying this step's filter to the given part.
+        if self.category is None:
+            raise ValueError("Can't apply a filter to a workflow step with no category.")
+
+        new_part: dict[str, set[int]] = {}
+        values_to_remove = set(range(self.compare_value + 1)) if self.op_is_gt else set(range(self.compare_value, 4001))
+        for category in ("x", "m", "a", "s"):
+            if category == self.category:
+                new_part[category] = part[category] - values_to_remove
+            else:
+                new_part[category] = set(part[category])
+        return new_part
+
+    def remove_filtered_values(self, part: dict[str, set[int]]) -> None:
+        # Remove the values that do not pass this step's filter from the given part.
+        if self.category is None:
+            raise ValueError("Can't apply a filter to a workflow step with no category.")
+        values_to_remove = set(range(self.compare_value + 1, 4001)) if self.op_is_gt else set(range(self.compare_value))
+        part[self.category] = part[self.category] - values_to_remove
 
     def __repr__(self):
         if self.category:
@@ -103,6 +126,36 @@ def process_parts(lines: list[str]) -> int:
     return sum(process_part(part, workflows) for part in parts)
 
 
+def combinations_for_workflow(name: str, part: dict[str, set[int]], workflows: dict[str, Workflow]) -> int:
+    # Count the number of combinations of parts that pass through this workflow.
+    combinations = 0
+
+    if name == "R":
+        return 0
+
+    if name == "A":
+        return prod(len(v) for v in part.values())
+
+    workflow = workflows[name]
+    for step in workflow.steps:
+        if step.category is None:
+            # We've reached the last step in this workflow.
+            if step.result == "A":
+                # This part is accepted so add the total number of combinations left in the part.
+                combinations += prod(len(v) for v in part.values())
+            elif step.result != "R":
+                # If the remainder of the part is going to another workflow, add the nubmer of
+                # combinations from that workflow. (If the part is rejected, the number of combinations
+                # won't be affected.)
+                combinations += combinations_for_workflow(step.result, part, workflows)
+        else:
+            new_part = step.part_with_filter(part)
+            combinations += combinations_for_workflow(step.result, new_part, workflows)
+            step.remove_filtered_values(part)
+
+    return combinations
+
+
 def count_ratings_combinations(lines: list[str]) -> int:
     workflows: dict[str, Workflow] = {}
 
@@ -112,7 +165,14 @@ def count_ratings_combinations(lines: list[str]) -> int:
         brace_position = line.index("{")
         workflows[line[:brace_position]] = Workflow(line[brace_position + 1 : -1])
 
-    return 0
+    part: dict[str, set[int]] = {
+        "x": set(range(1, 4001)),
+        "m": set(range(1, 4001)),
+        "a": set(range(1, 4001)),
+        "s": set(range(1, 4001)),
+    }
+
+    return combinations_for_workflow("in", part, workflows)
 
 
 if __name__ == "__main__":
@@ -129,7 +189,8 @@ if __name__ == "__main__":
 
     part1 = process_parts(lines)
     print(f"Part 1: {part1}")
-    # assert part1 == 106459
+    assert part1 == 374873
 
     part2 = count_ratings_combinations(lines)
     print(f"Part 2: {part2}")
+    assert part2 == 122_112_157_518_711
