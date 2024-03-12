@@ -1,0 +1,10 @@
+broadcaster -> aa
+%aa -> bb, xx
+%bb -> cc
+%cc -> dd
+%dd -> ee, xx
+%ee -> ff
+%ff -> xx
+&xx -> aa, bb, cc, ee, mk
+&mk -> vf
+&vf -> rx

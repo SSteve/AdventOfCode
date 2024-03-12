@@ -1,0 +1,29 @@
+digraph modules {
+	broadcaster [shape=circle];
+	aa [shape=diamond];
+	bb [shape=diamond];
+	cc [shape=diamond];
+	dd [shape=diamond];
+	ee [shape=diamond];
+	ff [shape=diamond];
+	xx [shape=rectangle];
+	mk [shape=rectangle];
+	vf [shape=rectangle];
+	broadcaster -> aa; 
+	aa -> bb; 
+	aa -> xx; 
+	bb -> cc; 
+	cc -> dd; 
+	dd -> ee; 
+	dd -> xx; 
+	ee -> ff; 
+	ff -> xx; 
+	xx -> aa; 
+	xx -> bb; 
+	xx -> cc; 
+	xx -> ee; 
+	xx -> mk; 
+	mk -> vf; 
+	rx [shape=star, style=filled, fillcolor=red];
+	vf -> rx; 
+}
