@@ -64,24 +64,19 @@ class Point:
 
 
 class TrailMap:
+    # TrailMap is used for Part 1.
     map: list[str]
     finish: Point
     use_slopes: bool
-    states: set[str]
 
     def __init__(self, input: list[str], use_slopes):
         self.map = input
         self.finish = Point(len(input[0]) - 2, len(input) - 1)
         self.use_slopes = use_slopes
-        self.states = set()
 
     @cache
     def location_is_on_trail(self, location: Point):
-        return (
-            0 <= location.x < len(self.map[0])
-            and 0 <= location.y < len(self.map)
-            and self.map[location.y][location.x] != "#"
-        )
+        return 0 <= location.x < len(self.map[0]) and 0 <= location.y < len(self.map) and self.map[location.y][location.x] != "#"
 
     @cache
     def next_from_location(self, location: Point) -> list[Point]:
@@ -114,9 +109,7 @@ class TrailMap:
     def find_longest_hike(self, location: Point, previous: set[Point]) -> int:
         while True:
             # Find all the possible next steps. We can't return to a previous location.
-            next = list(
-                filter(lambda p: p not in previous, self.next_from_location(location))
-            )
+            next = list(filter(lambda p: p not in previous, self.next_from_location(location)))
 
             if len(next) == 0:
                 # Dead end.
@@ -124,17 +117,7 @@ class TrailMap:
 
             if len(next) > 1:
                 # If this is a fork, return the longest path from here to the end.
-                state = f"{len(previous)} steps. Location: {location}. Fork: {next}"
-                # print(state)
-                if state in self.states:
-                    # raise ValueError("We've seen this state before.")
-                    # print("We've seen this state before.")
-                    return 0
-                    pass
-                self.states.add(state)
-                return max(
-                    self.find_longest_hike(p, set([*previous, location])) for p in next
-                )
+                return max(self.find_longest_hike(p, set([*previous, location])) for p in next)
 
             if len(next) == 1:
                 # There's only one possible next step, so move to that step and continue looking
@@ -144,28 +127,107 @@ class TrailMap:
                 if location == self.finish:
                     return len(previous)
 
+    def find_longest_hike2(self) -> int:
+        return 0
 
-def find_longest_hike(lines: list[str], part2: bool) -> int:
-    trail_map = TrailMap(lines, part2)
+
+class Tile:
+    adjacent: list[Self]
+    visited: bool
+    is_start: bool
+    is_end: bool
+
+    def __init__(self, is_start: bool = False, is_end: bool = False):
+        self.adjacent: list[Self] = []
+        self.visited = False
+        self.is_start = is_start
+        self.is_end = is_end
+
+    @property
+    def is_node(self) -> bool:
+        # Return true if this tile isn't in the middle of a path.
+        return len(self.adjacent) != 2
+
+    def connect(self, other: Self):
+        # Connect this tile to another.
+        self.adjacent.append((1, other))
+        other.adjacent.append((1, self))
+
+    def join(self):
+        # Called when there are exactly two tiles connected to this one. Joins the two directly and retains
+        # the distance between them.
+        len_a, tile_a = self.adjacent[0]
+        len_b, tile_b = self.adjacent[1]
+        tile_a._replace((len_a, self), (len_a + len_b, tile_b))
+        tile_b._replace((len_b, self), (len_a + len_b, tile_a))
+
+    def _replace(self, other: Self, new: Self):
+        index = self.adjacent.index(other)
+        self.adjacent[index] = new
+
+    def find_path(self) -> int:
+        # Find the longest path to the end tile.
+        if self.is_end:
+            return 1
+        self.visited = True
+        path_len = 0
+        for dist, next in self.adjacent:
+            if not next.visited:
+                d = next.find_path()
+                if d > 0:
+                    path_len = max(path_len, dist + d)
+        self.visited = False
+        return path_len
+
+
+def find_longest_hike(lines: list[str]) -> int:
+    trail_map = TrailMap(lines, True)
     return trail_map.find_longest_hike(Point(1, 0), set())
 
 
+def find_longest_hike2(lines: list[str]) -> int:
+    # Part 2 is adapted from https://github.com/fdouw/aoc-python/blob/master/2023/day23.py
+    tiles2: dict[Point, Tile] = {}
+    for y, line in enumerate(lines):
+        for x, char in enumerate(line):
+            if char == "#":
+                continue
+            last_tile2 = Tile(is_start=(y == 0))
+            this_location = Point(x, y)
+            tiles2[this_location] = last_tile2
+            above = this_location.up()
+            if above in tiles2:
+                last_tile2.connect(tiles2[above])
+            before = this_location.left()
+            if before in tiles2:
+                last_tile2.connect(tiles2[before])
+    last_tile2.is_end = True
+
+    first_tile2 = (tile for tile in tiles2.values() if tile.is_start).__next__()
+
+    for tile in tiles2.values():
+        if not tile.is_node:
+            tile.join()
+
+    return first_tile2.find_path() - 1
+
+
 if __name__ == "__main__":
-    part1test = find_longest_hike(TEST.splitlines(), True)
+    part1test = find_longest_hike(TEST.splitlines())
     print(f"Part 1 test: {part1test}")
     assert part1test == 94
 
-    part2test = find_longest_hike(TEST.splitlines(), False)
+    part2test = find_longest_hike2(TEST.splitlines())
     print(f"Part 2 test: {part2test}")
     assert part2test == 154
 
     with open("day23.txt") as infile:
         lines = infile.read().splitlines()
 
-    part1 = find_longest_hike(lines, True)
+    part1 = find_longest_hike(lines)
     print(f"Part 1: {part1}")
     assert part1 == 2402
 
-    part2 = find_longest_hike(lines, False)
+    part2 = find_longest_hike2(lines)
     print(f"Part 2: {part2}")
-    assert part2 > 6098
+    assert part2 == 6450
