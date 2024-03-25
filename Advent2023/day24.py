@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     part2test = part2(TEST.splitlines())
     print(f"Part 2 test: {part2test}")
-    # assert part2test == 47
+    assert part2test == 47
 
     with open("day24.txt") as infile:
         lines = infile.read().splitlines()
