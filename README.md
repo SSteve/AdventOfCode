@@ -12,3 +12,4 @@
 - [2021](https://github.com/SSteve/AdventOfCode/tree/master/Advent2021)
 - [2022](https://github.com/SSteve/AdventOfCode/tree/master/Advent2022)
 - [2023](https://github.com/SSteve/AdventOfCode/tree/master/Advent2023)
+- [2024](https://github.com/SSteve/AdventOfCode/tree/master/Advent2024)
