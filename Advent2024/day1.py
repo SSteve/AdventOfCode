@@ -10,13 +10,11 @@ def sum_distances(lines: list[str]) -> int:
     left = []
     right = []
     for line in lines:
-        (a, b) = line.split()
-        left.append(int(a))
-        right.append(int(b))
-    left.sort()
-    right.sort()
+        a, b = map(int, line.split())
+        left.append(a)
+        right.append(b)
     distances = 0
-    for a, b in zip(left, right):
+    for a, b in zip(sorted(left), sorted(right)):
         distances += abs(a - b)
     return distances
 
@@ -49,6 +47,8 @@ if __name__ == "__main__":
 
     part1 = sum_distances(lines)
     print(f"Part 1: {part1}")
+    assert part1 == 2176849
 
     part2 = sum_similarities(lines)
     print(f"Part 2: {part2}")
+    assert part2 == 23384288
